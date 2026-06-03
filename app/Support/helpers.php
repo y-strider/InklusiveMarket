@@ -15,21 +15,21 @@ if (!function_exists('arraymap')) {
 }
 
 if (!function_exists('arraykeyexists')) {
-    function arraykeyexists($key, array $array): bool
+    function arraykeyexists(string|int $key, array $array): bool
     {
         return array_key_exists($key, $array);
     }
 }
 
 if (!function_exists('inarray')) {
-    function inarray($needle, array $haystack, bool $strict = false): bool
+    function inarray(mixed $needle, array $haystack, bool $strict = false): bool
     {
         return in_array($needle, $haystack, $strict);
     }
 }
 
 if (!function_exists('isnull')) {
-    function isnull($value): bool
+    function isnull(mixed $value): bool
     {
         return is_null($value);
     }
