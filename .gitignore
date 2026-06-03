@@ -21,3 +21,9 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+.ignore/.dontdelete
+.ignore/README.md
+
+.ignore/.dontdelete
+.ignore/README.md
