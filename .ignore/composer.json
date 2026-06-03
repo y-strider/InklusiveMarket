@@ -1,0 +1,7 @@
+{
+    "require": {
+        "laravel/breeze": "^2.4",
+        "laravel/socialite": "^5.27",
+        "guzzlehttp/guzzle": "^7.11"
+    }
+}
