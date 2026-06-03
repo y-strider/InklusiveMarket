@@ -16,6 +16,7 @@ class FavoriteController extends Controller
             ->with(['seller:id,username,displayname', 'coverImage', 'category:id,name,slug'])
             ->where('status', 'active')
             ->paginate(24);
+
         return response()->json($favorites);
     }
 
@@ -24,14 +25,18 @@ class FavoriteController extends Controller
         $validated = $request->validate([
             'listingulid' => 'required|string|exists:listings,ulid',
         ]);
+
         $listing = Listing::where('ulid', $validated['listingulid'])->firstOrFail();
         $user = $request->user();
+
         $existing = Favorite::where('userid', $user->id)->where('listingid', $listing->id)->first();
+
         if ($existing) {
             $existing->delete();
             $listing->decrement('favoritescount');
             if ($listing->favoritescount < 0) {
-                $listing->update(['favoritescount' => 0]);
+                $listing->favoritescount = 0;
+                $listing->save();
             }
             $favorited = false;
         } else {
@@ -39,6 +44,7 @@ class FavoriteController extends Controller
             $listing->increment('favoritescount');
             $favorited = true;
         }
+
         return response()->json(['favorited' => $favorited, 'favoritescount' => $listing->fresh()->favoritescount]);
     }
 }

@@ -139,12 +139,12 @@ class Listing extends Model
 
     public function priceInDollars(): string
     {
-        return numberformat($this->price / 100, 2);
+        return num_format($this->price / 100, 2);
     }
 
     public function compareAtPriceInDollars(): ?string
     {
-        return $this->compareatprice ? numberformat($this->compareatprice / 100, 2) : null;
+        return $this->compareatprice ? num_format($this->compareatprice / 100, 2) : null;
     }
 
     public function isOnSale(): bool
@@ -154,7 +154,9 @@ class Listing extends Model
 
     public function discountPercentage(): ?int
     {
-        if (!$this->isOnSale()) return null;
+        if (!$this->isOnSale()) {
+            return null;
+        }
         return (int) round((($this->compareatprice - $this->price) / $this->compareatprice) * 100);
     }
 

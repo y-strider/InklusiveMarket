@@ -7,7 +7,6 @@ use App\Models\Listing;
 use App\Models\Offer;
 use App\Models\Order;
 use App\Models\Review;
-use App\Models\User;
 use App\Policies\ConversationPolicy;
 use App\Policies\ListingPolicy;
 use App\Policies\OfferPolicy;
@@ -37,7 +36,6 @@ class AppServiceProvider extends ServiceProvider
         Relation::morphMap([
             'listing' => Listing::class,
             'review' => Review::class,
-            'user' => User::class,
         ]);
     }
 }

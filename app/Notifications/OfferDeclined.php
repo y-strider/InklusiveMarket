@@ -11,7 +11,9 @@ class OfferDeclined extends Notification
 {
     use Queueable;
 
-    public function __construct(public Offer $offer) {}
+    public function __construct(public Offer $offer)
+    {
+    }
 
     public function via($notifiable): array
     {

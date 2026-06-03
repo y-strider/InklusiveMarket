@@ -9,25 +9,32 @@ class OrderPolicy
 {
     public function view(User $user, Order $order): bool
     {
-        if ($user->isAdmin()) return true;
+        if ($user->isAdmin()) {
+            return true;
+        }
         return $user->id === $order->buyerid || $user->id === $order->sellerid;
     }
 
     public function cancel(User $user, Order $order): bool
     {
-        if (!$order->canBeCancelled()) return false;
-        if ($user->isAdmin()) return true;
+        if (!$order->canBeCancelled()) {
+            return false;
+        }
+        if ($user->isAdmin()) {
+            return true;
+        }
         return $user->id === $order->buyerid || $user->id === $order->sellerid;
     }
 
     public function ship(User $user, Order $order): bool
     {
-        return $user->id === $order->sellerid && in_array($order->status, ['paid','processing'], true);
+        return $user->id === $order->sellerid && in_array($order->status, ['paid', 'processing'], true);
     }
 
     public function complete(User $user, Order $order): bool
     {
-        return ($user->id === $order->buyerid || $user->isAdmin()) && $order->status === Order::STATUSDELIVERED;
+        return ($user->id === $order->buyerid || $user->isAdmin())
+            && $order->status === Order::STATUSDELIVERED;
     }
 
     public function dispute(User $user, Order $order): bool

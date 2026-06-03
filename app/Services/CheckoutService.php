@@ -22,8 +22,10 @@ class CheckoutService
         if ($coupon && $coupon->isValid()) {
             $price = max(0, $price - $coupon->discountFor($price));
         }
+
         $platformFee = (int) round($price * 0.08);
         $sellerAccountId = $listing->seller->stripeaccountid;
+
         $params = [
             'amount' => $price,
             'currency' => strtolower($listing->currency),
@@ -36,10 +38,12 @@ class CheckoutService
                 'offerulid' => $offer?->ulid,
             ],
         ];
+
         if ($sellerAccountId) {
             $params['application_fee_amount'] = $platformFee;
             $params['transfer_data'] = ['destination' => $sellerAccountId];
         }
+
         return PaymentIntent::create($params);
     }
 
@@ -47,11 +51,14 @@ class CheckoutService
     {
         $event = $payload['type'] ?? null;
         $data = $payload['data']['object'] ?? null;
+
         if ($event === 'payment_intent.succeeded' && $data) {
             $listingUlid = $data['metadata']['listingulid'] ?? null;
             if (!$listingUlid) return;
+
             $listing = \App\Models\Listing::where('ulid', $listingUlid)->first();
             if (!$listing) return;
+
             $order = \App\Models\Order::where('stripepaymentintentid', $data['id'])->first();
             if ($order) {
                 app(OrderService::class)->markPaid($order, $data['id']);

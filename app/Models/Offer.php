@@ -73,7 +73,7 @@ class Offer extends Model
 
     public function amountInDollars(): string
     {
-        return numberformat($this->amount / 100, 2);
+        return num_format($this->amount / 100, 2);
     }
 
     public function isPending(): bool

@@ -19,15 +19,19 @@ use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
-    public function __construct(private PayoutService $payoutService) {}
+    public function __construct(private PayoutService $payoutService)
+    {
+    }
 
     public function createFromListing(User $buyer, Listing $listing, array $shippingAddress, ?Coupon $coupon = null, ?Offer $offer = null): Order
     {
         $price = $offer ? $offer->amount : $listing->price;
+
         if ($coupon && $coupon->isValid()) {
             $discount = $coupon->discountFor($price);
             $price = max(0, $price - $discount);
         }
+
         return DB::transaction(function () use ($buyer, $listing, $shippingAddress, $coupon, $offer, $price) {
             $order = Order::create([
                 'buyerid' => $buyer->id,
@@ -41,16 +45,20 @@ class OrderService
                 'status' => Order::STATUSPENDING,
                 'shippingaddress' => $shippingAddress,
             ]);
+
             PlatformFee::create([
                 'orderid' => $order->id,
                 'amount' => $order->platformFeeAmount(),
                 'percentage' => 8.00,
             ]);
+
             if ($coupon && $coupon->isValid()) {
                 $coupon->uses()->create(['userid' => $buyer->id, 'orderid' => $order->id]);
                 $coupon->increment('usedcount');
             }
+
             $listing->seller->notify(new OrderPlaced($order));
+
             return $order;
         });
     }

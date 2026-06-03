@@ -13,9 +13,10 @@ class ListingController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Listing::active()->with(['seller:id,username,displayname,avatarurl', 'category:id,name,slug', 'coverImage']);
-        $qString = (string) $request->query('q', '');
-        if ($qString !== '') {
-            $ids = Listing::search($qString)
+
+        $search = (string) $request->query('q', '');
+        if ($search !== '') {
+            $ids = Listing::search($search)
                 ->when($request->integer('categoryid'), fn($s) => $s->where('categoryid', (int) $request->integer('categoryid')))
                 ->when($request->string('condition')->toString(), fn($s) => $s->where('condition', $request->string('condition')->toString()))
                 ->when($request->integer('pricemin'), fn($s) => $s->where('price', '>=', (int) $request->integer('pricemin')))
@@ -33,6 +34,7 @@ class ListingController extends Controller
                 ->when($request->boolean('allowsoffers'), fn($q2) => $q2->where('allowsoffers', true))
                 ->when($request->string('shipsfrom')->toString(), fn($q2, $v) => $q2->where('shipsfrom', $v));
         }
+
         $sortMap = [
             'priceasc' => ['price','asc'],
             'pricedesc' => ['price','desc'],
@@ -42,6 +44,7 @@ class ListingController extends Controller
         ];
         [$col, $dir] = $sortMap[$request->input('sort', 'newest')] ?? ['publishedat','desc'];
         $query->orderBy($col, $dir);
+
         return response()->json($query->paginate(24));
     }
 
@@ -50,14 +53,17 @@ class ListingController extends Controller
         $listing = Listing::where('ulid', $ulid)
             ->with(['seller:id,ulid,username,displayname,avatarurl', 'category', 'images', 'tags', 'attributes'])
             ->firstOrFail();
+
         Gate::authorize('view', $listing);
         $listing->incrementViews();
+
         return response()->json($listing);
     }
 
     public function store(Request $request): JsonResponse
     {
         Gate::authorize('create', Listing::class);
+
         $validated = $request->validate([
             'categoryid' => 'required|exists:categories,id',
             'title' => 'required|string|max:200',
@@ -72,13 +78,16 @@ class ListingController extends Controller
             'tags' => 'array|max:10',
             'tags.*' => 'string|max:50',
         ]);
-        $payload = array_merge($validated, ['status' => 'draft', 'visibility' => 'public']);
-        $listing = $request->user()->listings()->create($payload);
+
+        $data = array_merge($validated, ['status' => 'draft', 'visibility' => 'public']);
+        $listing = $request->user()->listings()->create($data);
+
         if (!empty($validated['tags'])) {
             foreach ($validated['tags'] as $tag) {
                 $listing->tags()->create(['tag' => $tag]);
             }
         }
+
         return response()->json($listing->load(['category', 'tags']), 201);
     }
 
@@ -86,6 +95,7 @@ class ListingController extends Controller
     {
         $listing = Listing::where('ulid', $ulid)->firstOrFail();
         Gate::authorize('update', $listing);
+
         $validated = $request->validate([
             'categoryid' => 'sometimes|exists:categories,id',
             'title' => 'sometimes|string|max:200',
@@ -101,17 +111,21 @@ class ListingController extends Controller
             'tags' => 'sometimes|array|max:10',
             'tags.*' => 'string|max:50',
         ]);
-        if (arraykeyexists('tags', $validated)) {
+
+        if (arr_key_exists_safe('tags', $validated)) {
             $listing->tags()->delete();
             foreach ($validated['tags'] as $tag) {
                 $listing->tags()->create(['tag' => $tag]);
             }
             unset($validated['tags']);
         }
+
         if (isset($validated['status']) && $validated['status'] === 'active' && !$listing->publishedat) {
             $validated['publishedat'] = now();
         }
+
         $listing->update($validated);
+
         return response()->json($listing->fresh(['category','tags','images']));
     }
 
