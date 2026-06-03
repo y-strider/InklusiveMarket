@@ -1,16 +1,14 @@
 <?php
 
-use Illuminate\Support\Arr;
-
-if (!function_exists('num_format')) {
-    function num_format(float $number, int $decimals = 0, string $decimalSeparator = '.', string $thousandsSeparator = ''): string
+if (!function_exists('numformat')) {
+    function numformat(float $number, int $decimals = 0, string $decimalSeparator = '.', string $thousandsSeparator = ''): string
     {
         return number_format($number, $decimals, $decimalSeparator, $thousandsSeparator);
     }
 }
 
-if (!function_exists('arr_map')) {
-    function arr_map(callable $callback, array $array): array
+if (!function_exists('arrmap')) {
+    function arrmap(callable $callback, array $array): array
     {
         $out = [];
         foreach ($array as $k => $v) {
@@ -20,22 +18,22 @@ if (!function_exists('arr_map')) {
     }
 }
 
-if (!function_exists('arr_key_exists_safe')) {
-    function arr_key_exists_safe($key, array $array): bool
+if (!function_exists('arrkeyexists')) {
+    function arrkeyexists($key, array $array): bool
     {
         return array_key_exists($key, $array);
     }
 }
 
-if (!function_exists('in_array_safe')) {
-    function in_array_safe($needle, array $haystack, bool $strict = false): bool
+if (!function_exists('inarraysafe')) {
+    function inarraysafe($needle, array $haystack, bool $strict = false): bool
     {
         return in_array($needle, $haystack, $strict);
     }
 }
 
-if (!function_exists('is_null_safe')) {
-    function is_null_safe($value): bool
+if (!function_exists('isnullsafe')) {
+    function isnullsafe($value): bool
     {
         return is_null($value);
     }

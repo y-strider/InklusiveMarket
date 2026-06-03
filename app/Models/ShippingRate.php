@@ -24,6 +24,6 @@ class ShippingRate extends Model
 
     public function priceInDollars(): string
     {
-        return num_format($this->price / 100, 2);
+        return numformat($this->price / 100, 2);
     }
 }

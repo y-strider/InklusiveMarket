@@ -18,21 +18,21 @@ class ListingController extends Controller
         if ($search !== '') {
             $ids = Listing::search($search)
                 ->when($request->integer('categoryid'), fn($s) => $s->where('categoryid', (int) $request->integer('categoryid')))
-                ->when($request->string('condition')->toString(), fn($s) => $s->where('condition', $request->string('condition')->toString()))
+                ->when((string) $request->query('condition', '') !== '', fn($s) => $s->where('condition', (string) $request->query('condition')))
                 ->when($request->integer('pricemin'), fn($s) => $s->where('price', '>=', (int) $request->integer('pricemin')))
                 ->when($request->integer('pricemax'), fn($s) => $s->where('price', '<=', (int) $request->integer('pricemax')))
                 ->when($request->boolean('allowsoffers'), fn($s) => $s->where('allowsoffers', true))
-                ->when($request->string('shipsfrom')->toString(), fn($s) => $s->where('shipsfrom', $request->string('shipsfrom')->toString()))
+                ->when((string) $request->query('shipsfrom', '') !== '', fn($s) => $s->where('shipsfrom', (string) $request->query('shipsfrom')))
                 ->keys();
             $query->whereIn('id', $ids);
         } else {
             $query
                 ->when($request->integer('categoryid'), fn($q2, $v) => $q2->where('categoryid', $v))
-                ->when($request->string('condition')->toString(), fn($q2, $v) => $q2->where('condition', $v))
+                ->when((string) $request->query('condition', '') !== '', fn($q2) => $q2->where('condition', (string) $request->query('condition')))
                 ->when($request->integer('pricemin'), fn($q2, $v) => $q2->where('price', '>=', (int) $v))
                 ->when($request->integer('pricemax'), fn($q2, $v) => $q2->where('price', '<=', (int) $v))
                 ->when($request->boolean('allowsoffers'), fn($q2) => $q2->where('allowsoffers', true))
-                ->when($request->string('shipsfrom')->toString(), fn($q2, $v) => $q2->where('shipsfrom', $v));
+                ->when((string) $request->query('shipsfrom', '') !== '', fn($q2) => $q2->where('shipsfrom', (string) $request->query('shipsfrom')));
         }
 
         $sortMap = [
@@ -112,9 +112,9 @@ class ListingController extends Controller
             'tags.*' => 'string|max:50',
         ]);
 
-        if (arr_key_exists_safe('tags', $validated)) {
+        if (arrkeyexists('tags', $validated)) {
             $listing->tags()->delete();
-            foreach ($validated['tags'] as $tag) {
+            foreach ((array) $validated['tags'] as $tag) {
                 $listing->tags()->create(['tag' => $tag]);
             }
             unset($validated['tags']);

@@ -45,7 +45,7 @@ class Listing extends Model
 
     public static function generateSlug(string $title, string $ulid): string
     {
-        return Str::slug($title).'-'.strtolower($ulid);
+        return Str::slug($title) . '-' . strtolower($ulid);
     }
 
     public function getActivitylogOptions(): LogOptions
@@ -56,24 +56,24 @@ class Listing extends Model
     public function toSearchableArray(): array
     {
         return [
-            'id'=>$this->id,
-            'ulid'=>$this->ulid,
-            'title'=>$this->title,
-            'description'=>$this->description,
-            'tags'=>$this->tags->pluck('tag')->join(' '),
-            'categoryname'=>$this->category?->name,
-            'sellerusername'=>$this->seller?->username,
-            'condition'=>$this->condition,
-            'status'=>$this->status,
-            'price'=>$this->price,
-            'currency'=>$this->currency,
-            'shipsfrom'=>$this->shipsfrom,
-            'allowsoffers'=>$this->allowsoffers,
-            'categoryid'=>$this->categoryid,
-            'sellerid'=>$this->sellerid,
-            'favoritescount'=>$this->favoritescount,
-            'viewscount'=>$this->viewscount,
-            'publishedat'=>$this->publishedat?->timestamp,
+            'id' => $this->id,
+            'ulid' => $this->ulid,
+            'title' => $this->title,
+            'description' => $this->description,
+            'tags' => $this->relationLoaded('tags') ? $this->tags->pluck('tag')->join(' ') : '',
+            'categoryname' => $this->relationLoaded('category') ? ($this->category?->name) : null,
+            'sellerusername' => $this->relationLoaded('seller') ? ($this->seller?->username) : null,
+            'condition' => $this->condition,
+            'status' => $this->status,
+            'price' => $this->price,
+            'currency' => $this->currency,
+            'shipsfrom' => $this->shipsfrom,
+            'allowsoffers' => $this->allowsoffers,
+            'categoryid' => $this->categoryid,
+            'sellerid' => $this->sellerid,
+            'favoritescount' => $this->favoritescount,
+            'viewscount' => $this->viewscount,
+            'publishedat' => $this->publishedat?->timestamp,
         ];
     }
 
@@ -139,17 +139,17 @@ class Listing extends Model
 
     public function priceInDollars(): string
     {
-        return num_format($this->price / 100, 2);
+        return numformat($this->price / 100, 2);
     }
 
     public function compareAtPriceInDollars(): ?string
     {
-        return $this->compareatprice ? num_format($this->compareatprice / 100, 2) : null;
+        return $this->compareatprice ? numformat($this->compareatprice / 100, 2) : null;
     }
 
     public function isOnSale(): bool
     {
-        return (int)$this->compareatprice > 0 && $this->compareatprice > $this->price;
+        return (int) $this->compareatprice > 0 && $this->compareatprice > $this->price;
     }
 
     public function discountPercentage(): ?int

@@ -108,7 +108,7 @@ class Order extends Model
 
     public function priceInDollars(): string
     {
-        return num_format($this->price / 100, 2);
+        return numformat($this->price / 100, 2);
     }
 
     public function sellerAmount(): int
@@ -128,13 +128,13 @@ class Order extends Model
 
     public function canBeDisputed(): bool
     {
-        return in_array_safe($this->status, [self::STATUSPAID, self::STATUSPROCESSING, self::STATUSSHIPPED, self::STATUSDELIVERED], true)
+        return in_array($this->status, [self::STATUSPAID, self::STATUSPROCESSING, self::STATUSSHIPPED, self::STATUSDELIVERED], true)
             && !$this->dispute()->exists();
     }
 
     public function canBeCancelled(): bool
     {
-        return in_array_safe($this->status, [self::STATUSPENDING, self::STATUSPAID, self::STATUSPROCESSING], true);
+        return in_array($this->status, [self::STATUSPENDING, self::STATUSPAID, self::STATUSPROCESSING], true);
     }
 
     public function isCompleted(): bool

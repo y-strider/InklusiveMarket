@@ -34,7 +34,7 @@ class FavoriteController extends Controller
         if ($existing) {
             $existing->delete();
             $listing->decrement('favoritescount');
-            if ($listing->favoritescount < 0) {
+            if ((int) $listing->favoritescount < 0) {
                 $listing->favoritescount = 0;
                 $listing->save();
             }

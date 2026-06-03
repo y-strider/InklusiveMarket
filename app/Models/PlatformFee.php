@@ -20,6 +20,6 @@ class PlatformFee extends Model
 
     public function amountInDollars(): string
     {
-        return num_format($this->amount / 100, 2);
+        return numformat($this->amount / 100, 2);
     }
 }

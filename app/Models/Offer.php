@@ -73,7 +73,7 @@ class Offer extends Model
 
     public function amountInDollars(): string
     {
-        return num_format($this->amount / 100, 2);
+        return numformat($this->amount / 100, 2);
     }
 
     public function isPending(): bool
@@ -83,7 +83,7 @@ class Offer extends Model
 
     public function isExpired(): bool
     {
-        return $this->expiresat && $this->expiresat->isPast() && $this->status === self::STATUSPENDING;
+        return $this->expiresat !== null && $this->expiresat->isPast() && $this->status === self::STATUSPENDING;
     }
 
     public function isActive(): bool

@@ -58,7 +58,9 @@ class Conversation extends Model
     public function unreadCountFor(User $user): int
     {
         $participant = $this->participants->firstWhere('id', $user->id);
-        if (!$participant) return 0;
+        if (!$participant) {
+            return 0;
+        }
         $lastRead = $participant->pivot->lastreadat;
         return $this->messages()
             ->where('senderid', '!=', $user->id)
