@@ -7,6 +7,7 @@ use App\Models\Listing;
 use App\Models\Offer;
 use App\Models\Order;
 use App\Models\Review;
+use App\Models\User;
 use App\Policies\ConversationPolicy;
 use App\Policies\ListingPolicy;
 use App\Policies\OfferPolicy;
@@ -26,14 +27,17 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useTailwind();
+
         Gate::policy(Listing::class, ListingPolicy::class);
         Gate::policy(Order::class, OrderPolicy::class);
         Gate::policy(Offer::class, OfferPolicy::class);
         Gate::policy(Review::class, ReviewPolicy::class);
         Gate::policy(Conversation::class, ConversationPolicy::class);
+
         Relation::morphMap([
             'listing' => Listing::class,
             'review' => Review::class,
+            'user' => User::class,
         ]);
     }
 }
