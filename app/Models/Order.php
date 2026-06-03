@@ -108,12 +108,12 @@ class Order extends Model
 
     public function priceInDollars(): string
     {
-        return number_format($this->price / 100, 2);
+        return numberformat($this->price / 100, 2);
     }
 
     public function sellerAmount(): int
     {
-        return (int)round($this->price * 0.92);
+        return (int) round($this->price * 0.92);
     }
 
     public function platformFeeAmount(): int
@@ -128,13 +128,13 @@ class Order extends Model
 
     public function canBeDisputed(): bool
     {
-        return in_array($this->status, [self::STATUSPAID, self::STATUSPROCESSING, self::STATUSSHIPPED, self::STATUSDELIVERED], true)
+        return inarray($this->status, [self::STATUSPAID, self::STATUSPROCESSING, self::STATUSSHIPPED, self::STATUSDELIVERED], true)
             && !$this->dispute()->exists();
     }
 
     public function canBeCancelled(): bool
     {
-        return in_array($this->status, [self::STATUSPENDING, self::STATUSPAID, self::STATUSPROCESSING], true);
+        return inarray($this->status, [self::STATUSPENDING, self::STATUSPAID, self::STATUSPROCESSING], true);
     }
 
     public function isCompleted(): bool

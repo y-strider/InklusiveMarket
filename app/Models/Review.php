@@ -55,7 +55,7 @@ class Review extends Model
 
     public function starsArray(): array
     {
-        return array_map(fn($i) => $i <= $this->rating, range(1, 5));
+        return arraymap(fn($i) => $i <= $this->rating, range(1, 5));
     }
 
     public function hasReply(): bool

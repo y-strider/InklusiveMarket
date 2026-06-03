@@ -47,6 +47,6 @@ class Message extends Model
 
     public function isRead(): bool
     {
-        return !is_null($this->readat);
+        return !isnull($this->readat);
     }
 }

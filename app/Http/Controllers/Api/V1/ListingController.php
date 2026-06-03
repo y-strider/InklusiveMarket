@@ -13,12 +13,13 @@ class ListingController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Listing::active()->with(['seller:id,username,displayname,avatarurl', 'category:id,name,slug', 'coverImage']);
-        if ($q = $request->string('q')->toString()) {
-            $ids = Listing::search($q)
-                ->when($request->integer('categoryid'), fn($s) => $s->where('categoryid', (int)$request->integer('categoryid')))
+        $qString = (string) $request->query('q', '');
+        if ($qString !== '') {
+            $ids = Listing::search($qString)
+                ->when($request->integer('categoryid'), fn($s) => $s->where('categoryid', (int) $request->integer('categoryid')))
                 ->when($request->string('condition')->toString(), fn($s) => $s->where('condition', $request->string('condition')->toString()))
-                ->when($request->integer('pricemin'), fn($s) => $s->where('price', '>=', (int)$request->integer('pricemin')))
-                ->when($request->integer('pricemax'), fn($s) => $s->where('price', '<=', (int)$request->integer('pricemax')))
+                ->when($request->integer('pricemin'), fn($s) => $s->where('price', '>=', (int) $request->integer('pricemin')))
+                ->when($request->integer('pricemax'), fn($s) => $s->where('price', '<=', (int) $request->integer('pricemax')))
                 ->when($request->boolean('allowsoffers'), fn($s) => $s->where('allowsoffers', true))
                 ->when($request->string('shipsfrom')->toString(), fn($s) => $s->where('shipsfrom', $request->string('shipsfrom')->toString()))
                 ->keys();
@@ -27,8 +28,8 @@ class ListingController extends Controller
             $query
                 ->when($request->integer('categoryid'), fn($q2, $v) => $q2->where('categoryid', $v))
                 ->when($request->string('condition')->toString(), fn($q2, $v) => $q2->where('condition', $v))
-                ->when($request->integer('pricemin'), fn($q2, $v) => $q2->where('price', '>=', (int)$v))
-                ->when($request->integer('pricemax'), fn($q2, $v) => $q2->where('price', '<=', (int)$v))
+                ->when($request->integer('pricemin'), fn($q2, $v) => $q2->where('price', '>=', (int) $v))
+                ->when($request->integer('pricemax'), fn($q2, $v) => $q2->where('price', '<=', (int) $v))
                 ->when($request->boolean('allowsoffers'), fn($q2) => $q2->where('allowsoffers', true))
                 ->when($request->string('shipsfrom')->toString(), fn($q2, $v) => $q2->where('shipsfrom', $v));
         }
@@ -71,7 +72,8 @@ class ListingController extends Controller
             'tags' => 'array|max:10',
             'tags.*' => 'string|max:50',
         ]);
-        $listing = $request->user()->listings()->create(array_merge($validated, ['status' => 'draft', 'visibility' => 'public']));
+        $payload = array_merge($validated, ['status' => 'draft', 'visibility' => 'public']);
+        $listing = $request->user()->listings()->create($payload);
         if (!empty($validated['tags'])) {
             foreach ($validated['tags'] as $tag) {
                 $listing->tags()->create(['tag' => $tag]);
@@ -99,7 +101,7 @@ class ListingController extends Controller
             'tags' => 'sometimes|array|max:10',
             'tags.*' => 'string|max:50',
         ]);
-        if (array_key_exists('tags', $validated)) {
+        if (arraykeyexists('tags', $validated)) {
             $listing->tags()->delete();
             foreach ($validated['tags'] as $tag) {
                 $listing->tags()->create(['tag' => $tag]);

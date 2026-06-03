@@ -22,7 +22,7 @@ class CheckoutService
         if ($coupon && $coupon->isValid()) {
             $price = max(0, $price - $coupon->discountFor($price));
         }
-        $platformFee = (int)round($price * 0.08);
+        $platformFee = (int) round($price * 0.08);
         $sellerAccountId = $listing->seller->stripeaccountid;
         $params = [
             'amount' => $price,

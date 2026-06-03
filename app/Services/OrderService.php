@@ -19,9 +19,7 @@ use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
-    public function __construct(
-        private PayoutService $payoutService,
-    ) {}
+    public function __construct(private PayoutService $payoutService) {}
 
     public function createFromListing(User $buyer, Listing $listing, array $shippingAddress, ?Coupon $coupon = null, ?Offer $offer = null): Order
     {
