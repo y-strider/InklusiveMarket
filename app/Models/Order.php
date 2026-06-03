@@ -78,7 +78,7 @@ class Order extends Model
 
     public function statusLogs()
     {
-        return $this->hasMany(OrderStatusLog::class)->orderBy('created_at', 'desc');
+        return $this->hasMany(OrderStatusLog::class)->orderBy('createdat', 'desc');
     }
 
     public function review()

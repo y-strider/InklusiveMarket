@@ -22,7 +22,7 @@ class OrderController extends Controller
             : Order::forBuyer($user->id);
         $orders = $orders->with(['listing:id,ulid,title,slug', 'buyer:id,username,displayname', 'seller:id,username,displayname'])
             ->when($request->string('status')->toString(), fn($q, $v) => $q->where('status', $v))
-            ->orderBy('created_at', 'desc')
+            ->orderBy('createdat', 'desc')
             ->paginate(20);
         return response()->json($orders);
     }

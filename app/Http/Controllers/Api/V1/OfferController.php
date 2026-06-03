@@ -23,7 +23,7 @@ class OfferController extends Controller
             : Offer::where('buyerid', $user->id);
         $offers = $offers->with(['listing:id,ulid,title,slug,price', 'buyer:id,username,displayname,avatarurl'])
             ->when($request->string('status')->toString(), fn($q, $v) => $q->where('status', $v))
-            ->orderBy('created_at', 'desc')
+            ->orderBy('createdat', 'desc')
             ->paginate(20);
         return response()->json($offers);
     }
