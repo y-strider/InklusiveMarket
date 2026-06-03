@@ -25,6 +25,7 @@ yarn-error.log
 /.zed
 
 .ignore/.dontdelete
+.ignore/.pending
 .ignore/README.md
 
 .ignore/.dontdelete

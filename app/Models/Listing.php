@@ -15,20 +15,20 @@ class Listing extends Model
     use HasFactory, SoftDeletes, Searchable, LogsActivity;
 
     protected $fillable = [
-        'ulid', 'seller_id', 'category_id', 'title', 'slug', 'description',
-        'price', 'compare_at_price', 'currency', 'condition', 'status', 'visibility',
-        'quantity', 'allows_offers', 'ships_from', 'estimated_shipping_days',
-        'views_count', 'favorites_count', 'published_at',
+        'ulid', 'sellerid', 'categoryid', 'title', 'slug', 'description',
+        'price', 'compareatprice', 'currency', 'condition', 'status', 'visibility',
+        'quantity', 'allowsoffers', 'shipsfrom', 'estimatedshippingdays',
+        'viewscount', 'favoritescount', 'publishedat',
     ];
 
     protected $casts = [
         'price' => 'integer',
-        'compare_at_price' => 'integer',
+        'compareatprice' => 'integer',
         'quantity' => 'integer',
-        'views_count' => 'integer',
-        'favorites_count' => 'integer',
-        'allows_offers' => 'boolean',
-        'published_at' => 'datetime',
+        'viewscount' => 'integer',
+        'favoritescount' => 'integer',
+        'allowsoffers' => 'boolean',
+        'publishedat' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -61,19 +61,19 @@ class Listing extends Model
             'title' => $this->title,
             'description' => $this->description,
             'tags' => $this->tags->pluck('tag')->join(' '),
-            'category_name' => $this->category?->name,
-            'seller_username' => $this->seller?->username,
+            'categoryname' => $this->category?->name,
+            'sellerusername' => $this->seller?->username,
             'condition' => $this->condition,
             'status' => $this->status,
             'price' => $this->price,
             'currency' => $this->currency,
-            'ships_from' => $this->ships_from,
-            'allows_offers' => $this->allows_offers,
-            'category_id' => $this->category_id,
-            'seller_id' => $this->seller_id,
-            'favorites_count' => $this->favorites_count,
-            'views_count' => $this->views_count,
-            'published_at' => $this->published_at?->timestamp,
+            'shipsfrom' => $this->shipsfrom,
+            'allowsoffers' => $this->allowsoffers,
+            'categoryid' => $this->categoryid,
+            'sellerid' => $this->sellerid,
+            'favoritescount' => $this->favoritescount,
+            'viewscount' => $this->viewscount,
+            'publishedat' => $this->publishedat?->timestamp,
         ];
     }
 
@@ -85,7 +85,7 @@ class Listing extends Model
     // Relations
     public function seller()
     {
-        return $this->belongsTo(User::class, 'seller_id');
+        return $this->belongsTo(User::class, 'sellerid');
     }
 
     public function category()
@@ -95,12 +95,12 @@ class Listing extends Model
 
     public function images()
     {
-        return $this->hasMany(ListingImage::class)->orderBy('sort_order');
+        return $this->hasMany(ListingImage::class)->orderBy('sortorder');
     }
 
     public function coverImage()
     {
-        return $this->hasOne(ListingImage::class)->where('is_cover', true)->orderBy('sort_order');
+        return $this->hasOne(ListingImage::class)->where('iscover', true)->orderBy('sortorder');
     }
 
     public function tags()
@@ -146,18 +146,20 @@ class Listing extends Model
 
     public function compareAtPriceInDollars(): ?string
     {
-        return $this->compare_at_price ? number_format($this->compare_at_price / 100, 2) : null;
+        return $this->compareatprice ? number_format($this->compareatprice / 100, 2) : null;
     }
 
     public function isOnSale(): bool
     {
-        return $this->compare_at_price && $this->compare_at_price > $this->price;
+        return $this->compareatprice && $this->compareatprice > $this->price;
     }
 
     public function discountPercentage(): ?int
     {
-        if (!$this->isOnSale()) return null;
-        return (int) round((($this->compare_at_price - $this->price) / $this->compare_at_price) * 100);
+        if (!$this->isOnSale()) {
+            return null;
+        }
+        return (int) round((($this->compareatprice - $this->price) / $this->compareatprice) * 100);
     }
 
     public function isActive(): bool
@@ -182,7 +184,7 @@ class Listing extends Model
 
     public function incrementViews(): void
     {
-        $this->increment('views_count');
+        $this->increment('viewscount');
     }
 
     public function getRouteKeyName(): string
@@ -197,6 +199,6 @@ class Listing extends Model
 
     public function scopeForSeller($query, int $sellerId)
     {
-        return $query->where('seller_id', $sellerId);
+        return $query->where('sellerid', $sellerId);
     }
 }
