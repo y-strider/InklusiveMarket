@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PlatformFee extends Model
 {
-    protected $fillable = ['order_id', 'amount', 'percentage'];
+    protected $fillable = ['orderid','amount','percentage'];
 
     protected $casts = [
         'amount' => 'integer',

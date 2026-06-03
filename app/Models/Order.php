@@ -13,33 +13,33 @@ class Order extends Model
 {
     use HasFactory, SoftDeletes, LogsActivity;
 
-    const STATUS_PENDING = 'pending';
-    const STATUS_PAID = 'paid';
-    const STATUS_PROCESSING = 'processing';
-    const STATUS_SHIPPED = 'shipped';
-    const STATUS_DELIVERED = 'delivered';
-    const STATUS_COMPLETED = 'completed';
-    const STATUS_CANCELLED = 'cancelled';
-    const STATUS_REFUNDED = 'refunded';
-    const STATUS_DISPUTED = 'disputed';
+    const STATUSPENDING = 'pending';
+    const STATUSPAID = 'paid';
+    const STATUSPROCESSING = 'processing';
+    const STATUSSHIPPED = 'shipped';
+    const STATUSDELIVERED = 'delivered';
+    const STATUSCOMPLETED = 'completed';
+    const STATUSCANCELLED = 'cancelled';
+    const STATUSREFUNDED = 'refunded';
+    const STATUSDISPUTED = 'disputed';
 
     protected $fillable = [
-        'ulid', 'buyer_id', 'seller_id', 'listing_id', 'offer_id',
-        'title', 'price', 'currency', 'quantity', 'status',
-        'stripe_payment_intent_id', 'stripe_transfer_id',
-        'shipping_address', 'tracking_number',
-        'shipped_at', 'delivered_at', 'completed_at', 'cancelled_at',
-        'cancellation_reason', 'notes',
+        'ulid','buyerid','sellerid','listingid','offerid',
+        'title','price','currency','quantity','status',
+        'stripepaymentintentid','stripetransferid',
+        'shippingaddress','trackingnumber',
+        'shippedat','deliveredat','completedat','cancelledat',
+        'cancellationreason','notes',
     ];
 
     protected $casts = [
         'price' => 'integer',
         'quantity' => 'integer',
-        'shipping_address' => 'array',
-        'shipped_at' => 'datetime',
-        'delivered_at' => 'datetime',
-        'completed_at' => 'datetime',
-        'cancelled_at' => 'datetime',
+        'shippingaddress' => 'array',
+        'shippedat' => 'datetime',
+        'deliveredat' => 'datetime',
+        'completedat' => 'datetime',
+        'cancelledat' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -56,15 +56,14 @@ class Order extends Model
         return LogOptions::defaults()->logOnly(['status'])->logOnlyDirty();
     }
 
-    // Relations
     public function buyer()
     {
-        return $this->belongsTo(User::class, 'buyer_id');
+        return $this->belongsTo(User::class, 'buyerid');
     }
 
     public function seller()
     {
-        return $this->belongsTo(User::class, 'seller_id');
+        return $this->belongsTo(User::class, 'sellerid');
     }
 
     public function listing()
@@ -107,7 +106,6 @@ class Order extends Model
         return $this->hasOne(Conversation::class);
     }
 
-    // Helpers
     public function priceInDollars(): string
     {
         return number_format($this->price / 100, 2);
@@ -115,7 +113,7 @@ class Order extends Model
 
     public function sellerAmount(): int
     {
-        return (int) round($this->price * 0.92);
+        return (int)round($this->price * 0.92);
     }
 
     public function platformFeeAmount(): int
@@ -125,23 +123,23 @@ class Order extends Model
 
     public function canBeReviewed(): bool
     {
-        return $this->status === self::STATUS_COMPLETED && !$this->review()->exists();
+        return $this->status === self::STATUSCOMPLETED && !$this->review()->exists();
     }
 
     public function canBeDisputed(): bool
     {
-        return in_array($this->status, [self::STATUS_PAID, self::STATUS_PROCESSING, self::STATUS_SHIPPED, self::STATUS_DELIVERED])
+        return in_array($this->status, [self::STATUSPAID, self::STATUSPROCESSING, self::STATUSSHIPPED, self::STATUSDELIVERED], true)
             && !$this->dispute()->exists();
     }
 
     public function canBeCancelled(): bool
     {
-        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PAID, self::STATUS_PROCESSING]);
+        return in_array($this->status, [self::STATUSPENDING, self::STATUSPAID, self::STATUSPROCESSING], true);
     }
 
     public function isCompleted(): bool
     {
-        return $this->status === self::STATUS_COMPLETED;
+        return $this->status === self::STATUSCOMPLETED;
     }
 
     public function transitionTo(string $newStatus, ?int $changedBy = null, ?string $note = null): void
@@ -149,9 +147,9 @@ class Order extends Model
         $oldStatus = $this->status;
         $this->update(['status' => $newStatus]);
         $this->statusLogs()->create([
-            'from_status' => $oldStatus,
-            'to_status' => $newStatus,
-            'changed_by' => $changedBy,
+            'fromstatus' => $oldStatus,
+            'tostatus' => $newStatus,
+            'changedby' => $changedBy,
             'note' => $note,
         ]);
     }
@@ -163,11 +161,11 @@ class Order extends Model
 
     public function scopeForBuyer($query, int $buyerId)
     {
-        return $query->where('buyer_id', $buyerId);
+        return $query->where('buyerid', $buyerId);
     }
 
     public function scopeForSeller($query, int $sellerId)
     {
-        return $query->where('seller_id', $sellerId);
+        return $query->where('sellerid', $sellerId);
     }
 }

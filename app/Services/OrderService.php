@@ -26,39 +26,33 @@ class OrderService
     public function createFromListing(User $buyer, Listing $listing, array $shippingAddress, ?Coupon $coupon = null, ?Offer $offer = null): Order
     {
         $price = $offer ? $offer->amount : $listing->price;
-
         if ($coupon && $coupon->isValid()) {
             $discount = $coupon->discountFor($price);
             $price = max(0, $price - $discount);
         }
-
         return DB::transaction(function () use ($buyer, $listing, $shippingAddress, $coupon, $offer, $price) {
             $order = Order::create([
-                'buyer_id' => $buyer->id,
-                'seller_id' => $listing->seller_id,
-                'listing_id' => $listing->id,
-                'offer_id' => $offer?->id,
+                'buyerid' => $buyer->id,
+                'sellerid' => $listing->sellerid,
+                'listingid' => $listing->id,
+                'offerid' => $offer?->id,
                 'title' => $listing->title,
                 'price' => $price,
                 'currency' => $listing->currency,
                 'quantity' => 1,
-                'status' => Order::STATUS_PENDING,
-                'shipping_address' => $shippingAddress,
+                'status' => Order::STATUSPENDING,
+                'shippingaddress' => $shippingAddress,
             ]);
-
             PlatformFee::create([
-                'order_id' => $order->id,
+                'orderid' => $order->id,
                 'amount' => $order->platformFeeAmount(),
                 'percentage' => 8.00,
             ]);
-
             if ($coupon && $coupon->isValid()) {
-                $coupon->uses()->create(['user_id' => $buyer->id, 'order_id' => $order->id]);
-                $coupon->increment('used_count');
+                $coupon->uses()->create(['userid' => $buyer->id, 'orderid' => $order->id]);
+                $coupon->increment('usedcount');
             }
-
             $listing->seller->notify(new OrderPlaced($order));
-
             return $order;
         });
     }
@@ -66,8 +60,8 @@ class OrderService
     public function markPaid(Order $order, string $paymentIntentId): void
     {
         DB::transaction(function () use ($order, $paymentIntentId) {
-            $order->update(['stripe_payment_intent_id' => $paymentIntentId]);
-            $order->transitionTo(Order::STATUS_PAID, null, 'Payment confirmed via Stripe');
+            $order->update(['stripepaymentintentid' => $paymentIntentId]);
+            $order->transitionTo(Order::STATUSPAID, null, 'Payment confirmed via Stripe');
             $order->buyer->notify(new OrderPaid($order));
         });
     }
@@ -75,8 +69,8 @@ class OrderService
     public function markShipped(Order $order, string $trackingNumber, int $changedBy): void
     {
         DB::transaction(function () use ($order, $trackingNumber, $changedBy) {
-            $order->update(['tracking_number' => $trackingNumber, 'shipped_at' => now()]);
-            $order->transitionTo(Order::STATUS_SHIPPED, $changedBy, 'Order shipped');
+            $order->update(['trackingnumber' => $trackingNumber, 'shippedat' => now()]);
+            $order->transitionTo(Order::STATUSSHIPPED, $changedBy, 'Order shipped');
             $order->buyer->notify(new OrderShipped($order));
         });
     }
@@ -84,8 +78,8 @@ class OrderService
     public function markDelivered(Order $order, int $changedBy): void
     {
         DB::transaction(function () use ($order, $changedBy) {
-            $order->update(['delivered_at' => now()]);
-            $order->transitionTo(Order::STATUS_DELIVERED, $changedBy, 'Order delivered');
+            $order->update(['deliveredat' => now()]);
+            $order->transitionTo(Order::STATUSDELIVERED, $changedBy, 'Order delivered');
             $order->buyer->notify(new OrderDelivered($order));
         });
     }
@@ -93,8 +87,8 @@ class OrderService
     public function markCompleted(Order $order, int $changedBy): void
     {
         DB::transaction(function () use ($order, $changedBy) {
-            $order->update(['completed_at' => now()]);
-            $order->transitionTo(Order::STATUS_COMPLETED, $changedBy, 'Order completed');
+            $order->update(['completedat' => now()]);
+            $order->transitionTo(Order::STATUSCOMPLETED, $changedBy, 'Order completed');
             $order->listing->update(['status' => 'sold']);
             $order->seller->notify(new OrderCompleted($order));
             $this->payoutService->createForOrder($order);
@@ -104,8 +98,8 @@ class OrderService
     public function cancel(Order $order, int $changedBy, string $reason): void
     {
         DB::transaction(function () use ($order, $changedBy, $reason) {
-            $order->update(['cancelled_at' => now(), 'cancellation_reason' => $reason]);
-            $order->transitionTo(Order::STATUS_CANCELLED, $changedBy, $reason);
+            $order->update(['cancelledat' => now(), 'cancellationreason' => $reason]);
+            $order->transitionTo(Order::STATUSCANCELLED, $changedBy, $reason);
             $order->buyer->notify(new OrderCancelled($order));
             $order->seller->notify(new OrderCancelled($order));
         });
@@ -113,7 +107,7 @@ class OrderService
 
     public function openDispute(Order $order): void
     {
-        $order->transitionTo(Order::STATUS_DISPUTED);
+        $order->transitionTo(Order::STATUSDISPUTED);
         $order->seller->notify(new OrderDisputeOpened($order));
     }
 }

@@ -7,19 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 class ShippingRate extends Model
 {
     protected $fillable = [
-        'shipping_profile_id', 'destination', 'price',
-        'estimated_days_min', 'estimated_days_max',
+        'shippingprofileid','destination','price',
+        'estimateddaysmin','estimateddaysmax',
     ];
 
     protected $casts = [
         'price' => 'integer',
-        'estimated_days_min' => 'integer',
-        'estimated_days_max' => 'integer',
+        'estimateddaysmin' => 'integer',
+        'estimateddaysmax' => 'integer',
     ];
 
     public function profile()
     {
-        return $this->belongsTo(ShippingProfile::class, 'shipping_profile_id');
+        return $this->belongsTo(ShippingProfile::class, 'shippingprofileid');
     }
 
     public function priceInDollars(): string

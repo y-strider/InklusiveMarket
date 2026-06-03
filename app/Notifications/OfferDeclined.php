@@ -15,25 +15,25 @@ class OfferDeclined extends Notification
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database','mail'];
     }
 
     public function toArray($notifiable): array
     {
         return [
             'type' => 'offer.declined',
-            'offer_ulid' => $this->offer->ulid,
-            'listing_title' => $this->offer->listing->title,
-            'message' => "Your offer for \"{$this->offer->listing->title}\" was declined.",
+            'offerulid' => $this->offer->ulid,
+            'listingtitle' => $this->offer->listing->title,
+            'message' => 'Your offer for "'.$this->offer->listing->title.'" was declined.',
         ];
     }
 
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Offer Declined — ' . $this->offer->listing->title)
+            ->subject('Offer Declined — '.$this->offer->listing->title)
             ->greeting('Your offer was declined.')
-            ->line("The seller declined your offer for \"{$this->offer->listing->title}\".")
+            ->line('The seller declined your offer for "'.$this->offer->listing->title.'".')
             ->action('Browse Listings', route('browse'));
     }
 }

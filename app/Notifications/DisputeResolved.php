@@ -15,15 +15,15 @@ class DisputeResolved extends Notification
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database','mail'];
     }
 
     public function toArray($notifiable): array
     {
         return [
             'type' => 'dispute.resolved',
-            'dispute_ulid' => $this->dispute->ulid,
-            'order_ulid' => $this->dispute->order->ulid,
+            'disputeulid' => $this->dispute->ulid,
+            'orderulid' => $this->dispute->order->ulid,
             'resolution' => $this->dispute->resolution,
             'message' => 'Your dispute has been resolved.',
         ];
@@ -31,10 +31,13 @@ class DisputeResolved extends Notification
 
     public function toMail($notifiable): MailMessage
     {
-        return (new MailMessage)
-            ->subject('Dispute Resolved — Order #' . $this->dispute->order->ulid)
+        $mail = (new MailMessage)
+            ->subject('Dispute Resolved — Order #'.$this->dispute->order->ulid)
             ->greeting('Your dispute has been resolved.')
-            ->when($this->dispute->resolution, fn($m) => $m->line("Resolution: {$this->dispute->resolution}"))
             ->action('View Order', route('orders.show', $this->dispute->order->ulid));
+        if ($this->dispute->resolution) {
+            $mail->line('Resolution: '.$this->dispute->resolution);
+        }
+        return $mail;
     }
 }

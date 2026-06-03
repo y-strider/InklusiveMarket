@@ -15,16 +15,16 @@ class ReviewReplied extends Notification
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database','mail'];
     }
 
     public function toArray($notifiable): array
     {
         return [
             'type' => 'review.replied',
-            'review_ulid' => $this->review->ulid,
-            'seller_username' => $this->review->reviewee->username,
-            'message' => "The seller replied to your review of \"{$this->review->listing->title}\".",
+            'reviewulid' => $this->review->ulid,
+            'sellerusername' => $this->review->reviewee->username,
+            'message' => 'The seller replied to your review of "'.$this->review->listing->title.'".',
         ];
     }
 
@@ -33,7 +33,7 @@ class ReviewReplied extends Notification
         return (new MailMessage)
             ->subject('Seller Replied to Your Review')
             ->greeting('The seller responded to your review.')
-            ->line("\"{$this->review->seller_reply}\"")
+            ->line('"'.$this->review->sellerreply.'"')
             ->action('View Review', route('listings.show', $this->review->listing->slug));
     }
 }

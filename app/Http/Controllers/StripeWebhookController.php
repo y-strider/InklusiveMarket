@@ -20,16 +20,13 @@ class StripeWebhookController extends Controller
     {
         $payload = $request->getContent();
         $sig = $request->header('Stripe-Signature');
-        $secret = config('services.stripe.webhook_secret');
-
+        $secret = config('services.stripe.webhooksecret');
         try {
             $event = Webhook::constructEvent($payload, $sig, $secret);
         } catch (SignatureVerificationException $e) {
             return response('Invalid signature.', 400);
         }
-
         $this->checkoutService->handleWebhook($event->toArray());
-
         return response('OK', 200);
     }
 }

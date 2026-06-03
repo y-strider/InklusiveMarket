@@ -15,14 +15,14 @@ class OrderDelivered extends Notification
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database','mail'];
     }
 
     public function toArray($notifiable): array
     {
         return [
             'type' => 'order.delivered',
-            'order_ulid' => $this->order->ulid,
+            'orderulid' => $this->order->ulid,
             'title' => $this->order->title,
             'message' => "Your order \"{$this->order->title}\" has been delivered.",
         ];
@@ -31,9 +31,9 @@ class OrderDelivered extends Notification
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Order Delivered — ' . $this->order->title)
+            ->subject('Order Delivered — '.$this->order->title)
             ->greeting('Your order has arrived!')
-            ->line("Your order \"{$this->order->title}\" has been marked as delivered.")
+            ->line('Your order "'.$this->order->title.'" has been marked as delivered.')
             ->line('Please leave a review for the seller.')
             ->action('Leave a Review', route('orders.show', $this->order->ulid));
     }

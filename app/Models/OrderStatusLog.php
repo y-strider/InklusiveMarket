@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrderStatusLog extends Model
 {
-    protected $fillable = ['order_id', 'from_status', 'to_status', 'changed_by', 'note'];
+    protected $fillable = ['orderid','fromstatus','tostatus','changedby','note'];
     public $timestamps = true;
     const UPDATED_AT = null;
 
@@ -17,6 +17,6 @@ class OrderStatusLog extends Model
 
     public function changer()
     {
-        return $this->belongsTo(User::class, 'changed_by');
+        return $this->belongsTo(User::class, 'changedby');
     }
 }

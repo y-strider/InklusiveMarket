@@ -15,14 +15,14 @@ class OrderDisputeOpened extends Notification
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database','mail'];
     }
 
     public function toArray($notifiable): array
     {
         return [
             'type' => 'order.disputed',
-            'order_ulid' => $this->order->ulid,
+            'orderulid' => $this->order->ulid,
             'title' => $this->order->title,
             'message' => "A dispute has been opened for order \"{$this->order->title}\".",
         ];
@@ -31,9 +31,9 @@ class OrderDisputeOpened extends Notification
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Dispute Opened — ' . $this->order->title)
+            ->subject('Dispute Opened — '.$this->order->title)
             ->greeting('A dispute has been filed.')
-            ->line("Order \"{$this->order->title}\" is now under dispute.")
+            ->line('Order "'.$this->order->title.'" is now under dispute.')
             ->line('Please respond to the dispute as soon as possible.')
             ->action('View Dispute', route('orders.show', $this->order->ulid));
     }

@@ -15,25 +15,25 @@ class PayoutSent extends Notification
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database','mail'];
     }
 
     public function toArray($notifiable): array
     {
         return [
             'type' => 'payout.sent',
-            'payout_ulid' => $this->payout->ulid,
+            'payoutulid' => $this->payout->ulid,
             'amount' => $this->payout->amount,
-            'message' => "Payout of \${$this->payout->amountInDollars()} has been processed.",
+            'message' => 'Payout of $'.$this->payout->amountInDollars().' has been processed.',
         ];
     }
 
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Payout Processed — $' . $this->payout->amountInDollars())
+            ->subject('Payout Processed — $'.$this->payout->amountInDollars())
             ->greeting('Your payout is on its way!')
-            ->line("A payout of **\${$this->payout->amountInDollars()}** has been sent to your Stripe account.")
+            ->line('A payout of $'.$this->payout->amountInDollars().' has been sent to your Stripe account.')
             ->action('View Payouts', route('seller.payouts'));
     }
 }

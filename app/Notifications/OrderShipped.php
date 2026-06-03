@@ -15,16 +15,16 @@ class OrderShipped extends Notification
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database','mail'];
     }
 
     public function toArray($notifiable): array
     {
         return [
             'type' => 'order.shipped',
-            'order_ulid' => $this->order->ulid,
+            'orderulid' => $this->order->ulid,
             'title' => $this->order->title,
-            'tracking_number' => $this->order->tracking_number,
+            'trackingnumber' => $this->order->trackingnumber,
             'message' => "Your order \"{$this->order->title}\" has shipped!",
         ];
     }
@@ -32,9 +32,9 @@ class OrderShipped extends Notification
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Your Order Has Shipped — ' . $this->order->title)
+            ->subject('Your Order Has Shipped — '.$this->order->title)
             ->greeting('Your order is on its way!')
-            ->line("Tracking number: **{$this->order->tracking_number}**")
+            ->line('Tracking number: '.$this->order->trackingnumber)
             ->action('View Order', route('orders.show', $this->order->ulid));
     }
 }

@@ -9,11 +9,11 @@ class ConversationPolicy
 {
     public function view(User $user, Conversation $conversation): bool
     {
-        return $conversation->participants->contains($user->id);
+        return $conversation->participants->contains(fn($u) => $u->id === $user->id);
     }
 
     public function sendMessage(User $user, Conversation $conversation): bool
     {
-        return $conversation->participants->contains($user->id) && !$user->isSuspended();
+        return $conversation->participants->contains(fn($u) => $u->id === $user->id) && !$user->isSuspended();
     }
 }

@@ -15,17 +15,17 @@ class OrderPlaced extends Notification
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database','mail'];
     }
 
     public function toArray($notifiable): array
     {
         return [
             'type' => 'order.placed',
-            'order_ulid' => $this->order->ulid,
+            'orderulid' => $this->order->ulid,
             'title' => $this->order->title,
             'price' => $this->order->price,
-            'buyer_username' => $this->order->buyer->username,
+            'buyerusername' => $this->order->buyer->username,
             'message' => "New order received for \"{$this->order->title}\"",
         ];
     }
@@ -33,9 +33,9 @@ class OrderPlaced extends Notification
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('New Order Received — ' . $this->order->title)
+            ->subject('New Order Received — '.$this->order->title)
             ->greeting('You have a new order!')
-            ->line("**{$this->order->buyer->display_name}** purchased \"{$this->order->title}\" for \${$this->order->priceInDollars()}.")
+            ->line($this->order->buyer->displayname.' purchased "'.$this->order->title.'" for $'.$this->order->priceInDollars().'.')
             ->action('View Order', route('seller.orders.show', $this->order->ulid))
             ->line('Please process this order promptly.');
     }

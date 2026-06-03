@@ -15,10 +15,10 @@ class Listing extends Model
     use HasFactory, SoftDeletes, Searchable, LogsActivity;
 
     protected $fillable = [
-        'ulid', 'sellerid', 'categoryid', 'title', 'slug', 'description',
-        'price', 'compareatprice', 'currency', 'condition', 'status', 'visibility',
-        'quantity', 'allowsoffers', 'shipsfrom', 'estimatedshippingdays',
-        'viewscount', 'favoritescount', 'publishedat',
+        'ulid','sellerid','categoryid','title','slug','description',
+        'price','compareatprice','currency','condition','status','visibility',
+        'quantity','allowsoffers','shipsfrom','estimatedshippingdays',
+        'viewscount','favoritescount','publishedat',
     ];
 
     protected $casts = [
@@ -45,35 +45,35 @@ class Listing extends Model
 
     public static function generateSlug(string $title, string $ulid): string
     {
-        return Str::slug($title) . '-' . strtolower($ulid);
+        return Str::slug($title).'-'.strtolower($ulid);
     }
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logOnly(['status', 'visibility', 'price'])->logOnlyDirty();
+        return LogOptions::defaults()->logOnly(['status','visibility','price'])->logOnlyDirty();
     }
 
     public function toSearchableArray(): array
     {
         return [
-            'id' => $this->id,
-            'ulid' => $this->ulid,
-            'title' => $this->title,
-            'description' => $this->description,
-            'tags' => $this->tags->pluck('tag')->join(' '),
-            'categoryname' => $this->category?->name,
-            'sellerusername' => $this->seller?->username,
-            'condition' => $this->condition,
-            'status' => $this->status,
-            'price' => $this->price,
-            'currency' => $this->currency,
-            'shipsfrom' => $this->shipsfrom,
-            'allowsoffers' => $this->allowsoffers,
-            'categoryid' => $this->categoryid,
-            'sellerid' => $this->sellerid,
-            'favoritescount' => $this->favoritescount,
-            'viewscount' => $this->viewscount,
-            'publishedat' => $this->publishedat?->timestamp,
+            'id'=>$this->id,
+            'ulid'=>$this->ulid,
+            'title'=>$this->title,
+            'description'=>$this->description,
+            'tags'=>$this->tags->pluck('tag')->join(' '),
+            'categoryname'=>$this->category?->name,
+            'sellerusername'=>$this->seller?->username,
+            'condition'=>$this->condition,
+            'status'=>$this->status,
+            'price'=>$this->price,
+            'currency'=>$this->currency,
+            'shipsfrom'=>$this->shipsfrom,
+            'allowsoffers'=>$this->allowsoffers,
+            'categoryid'=>$this->categoryid,
+            'sellerid'=>$this->sellerid,
+            'favoritescount'=>$this->favoritescount,
+            'viewscount'=>$this->viewscount,
+            'publishedat'=>$this->publishedat?->timestamp,
         ];
     }
 
@@ -82,7 +82,6 @@ class Listing extends Model
         return $this->status === 'active' && $this->visibility === 'public' && !$this->trashed();
     }
 
-    // Relations
     public function seller()
     {
         return $this->belongsTo(User::class, 'sellerid');
@@ -138,7 +137,6 @@ class Listing extends Model
         return $this->hasMany(Review::class);
     }
 
-    // Helpers
     public function priceInDollars(): string
     {
         return number_format($this->price / 100, 2);
@@ -151,15 +149,13 @@ class Listing extends Model
 
     public function isOnSale(): bool
     {
-        return $this->compareatprice && $this->compareatprice > $this->price;
+        return (int)$this->compareatprice > 0 && $this->compareatprice > $this->price;
     }
 
     public function discountPercentage(): ?int
     {
-        if (!$this->isOnSale()) {
-            return null;
-        }
-        return (int) round((($this->compareatprice - $this->price) / $this->compareatprice) * 100);
+        if (!$this->isOnSale()) return null;
+        return (int)round((($this->compareatprice - $this->price) / $this->compareatprice) * 100);
     }
 
     public function isActive(): bool

@@ -14,7 +14,7 @@ class UserSuspended extends Notification
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database','mail'];
     }
 
     public function toArray($notifiable): array
@@ -31,7 +31,7 @@ class UserSuspended extends Notification
         return (new MailMessage)
             ->subject('Account Suspended')
             ->greeting('Your account has been suspended.')
-            ->line("Reason: {$this->reason}")
+            ->line('Reason: '.$this->reason)
             ->line('If you believe this is an error, please contact support.');
     }
 }

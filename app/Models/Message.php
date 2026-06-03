@@ -12,12 +12,12 @@ class Message extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'ulid', 'conversation_id', 'sender_id', 'body', 'is_system', 'read_at',
+        'ulid','conversationid','senderid','body','issystem','readat',
     ];
 
     protected $casts = [
-        'is_system' => 'boolean',
-        'read_at' => 'datetime',
+        'issystem' => 'boolean',
+        'readat' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -29,22 +29,24 @@ class Message extends Model
         });
 
         static::created(function (Message $m) {
-            $m->conversation->update(['last_message_at' => now()]);
+            if ($m->conversation) {
+                $m->conversation->update(['lastmessageat' => now()]);
+            }
         });
     }
 
     public function conversation()
     {
-        return $this->belongsTo(Conversation::class);
+        return $this->belongsTo(Conversation::class, 'conversationid');
     }
 
     public function sender()
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        return $this->belongsTo(User::class, 'senderid');
     }
 
     public function isRead(): bool
     {
-        return !is_null($this->read_at);
+        return !is_null($this->readat);
     }
 }

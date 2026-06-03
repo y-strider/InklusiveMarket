@@ -10,15 +10,15 @@ class Coupon extends Model
     use HasFactory;
 
     protected $fillable = [
-        'code', 'type', 'value', 'max_uses', 'used_count', 'expires_at', 'is_active',
+        'code','type','value','maxuses','usedcount','expiresat','isactive',
     ];
 
     protected $casts = [
         'value' => 'integer',
-        'max_uses' => 'integer',
-        'used_count' => 'integer',
-        'expires_at' => 'datetime',
-        'is_active' => 'boolean',
+        'maxuses' => 'integer',
+        'usedcount' => 'integer',
+        'expiresat' => 'datetime',
+        'isactive' => 'boolean',
     ];
 
     public function uses()
@@ -28,23 +28,25 @@ class Coupon extends Model
 
     public function isValid(): bool
     {
-        if (!$this->is_active) return false;
-        if ($this->expires_at && $this->expires_at->isPast()) return false;
-        if ($this->max_uses && $this->used_count >= $this->max_uses) return false;
+        if (!$this->isactive) return false;
+        if ($this->expiresat && $this->expiresat->isPast()) return false;
+        if ($this->maxuses && $this->usedcount >= $this->maxuses) return false;
         return true;
     }
 
     public function discountFor(int $priceInCents): int
     {
         if ($this->type === 'percentage') {
-            return (int) round($priceInCents * ($this->value / 100));
+            return (int)round($priceInCents * ($this->value / 100));
         }
         return min($this->value, $priceInCents);
     }
 
     public function scopeActive($query)
     {
-        return $query->where('is_active', true)
-            ->where(fn($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
+        return $query->where('isactive', true)
+            ->where(function ($q) {
+                $q->whereNull('expiresat')->orWhere('expiresat', '>', now());
+            });
     }
 }

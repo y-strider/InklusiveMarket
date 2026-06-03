@@ -12,16 +12,16 @@ class Review extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'ulid', 'order_id', 'reviewer_id', 'reviewee_id', 'listing_id',
-        'rating', 'body', 'seller_reply', 'seller_replied_at',
-        'is_flagged', 'flag_reason', 'is_published',
+        'ulid','orderid','reviewerid','revieweeid','listingid',
+        'rating','body','sellerreply','sellerrepliedat',
+        'isflagged','flagreason','ispublished',
     ];
 
     protected $casts = [
         'rating' => 'integer',
-        'is_flagged' => 'boolean',
-        'is_published' => 'boolean',
-        'seller_replied_at' => 'datetime',
+        'isflagged' => 'boolean',
+        'ispublished' => 'boolean',
+        'sellerrepliedat' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -33,7 +33,6 @@ class Review extends Model
         });
     }
 
-    // Relations
     public function order()
     {
         return $this->belongsTo(Order::class);
@@ -41,12 +40,12 @@ class Review extends Model
 
     public function reviewer()
     {
-        return $this->belongsTo(User::class, 'reviewer_id');
+        return $this->belongsTo(User::class, 'reviewerid');
     }
 
     public function reviewee()
     {
-        return $this->belongsTo(User::class, 'reviewee_id');
+        return $this->belongsTo(User::class, 'revieweeid');
     }
 
     public function listing()
@@ -54,7 +53,6 @@ class Review extends Model
         return $this->belongsTo(Listing::class)->withTrashed();
     }
 
-    // Helpers
     public function starsArray(): array
     {
         return array_map(fn($i) => $i <= $this->rating, range(1, 5));
@@ -62,7 +60,7 @@ class Review extends Model
 
     public function hasReply(): bool
     {
-        return !empty($this->seller_reply);
+        return !empty($this->sellerreply);
     }
 
     public function getRouteKeyName(): string
@@ -72,6 +70,6 @@ class Review extends Model
 
     public function scopePublished($query)
     {
-        return $query->where('is_published', true);
+        return $query->where('ispublished', true);
     }
 }

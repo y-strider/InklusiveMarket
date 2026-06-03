@@ -11,13 +11,13 @@ class Payout extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ulid', 'seller_id', 'order_id', 'stripe_payout_id',
-        'amount', 'currency', 'status', 'paid_at',
+        'ulid','sellerid','orderid','stripepayoutid',
+        'amount','currency','status','paidat',
     ];
 
     protected $casts = [
         'amount' => 'integer',
-        'paid_at' => 'datetime',
+        'paidat' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -31,7 +31,7 @@ class Payout extends Model
 
     public function seller()
     {
-        return $this->belongsTo(User::class, 'seller_id');
+        return $this->belongsTo(User::class, 'sellerid');
     }
 
     public function order()

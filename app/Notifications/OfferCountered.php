@@ -15,26 +15,26 @@ class OfferCountered extends Notification
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database','mail'];
     }
 
     public function toArray($notifiable): array
     {
         return [
             'type' => 'offer.countered',
-            'offer_ulid' => $this->offer->ulid,
-            'listing_title' => $this->offer->listing->title,
+            'offerulid' => $this->offer->ulid,
+            'listingtitle' => $this->offer->listing->title,
             'amount' => $this->offer->amount,
-            'message' => "The seller countered with \${$this->offer->amountInDollars()} for \"{$this->offer->listing->title}\".",
+            'message' => 'The seller countered with $'.$this->offer->amountInDollars().' for "'.$this->offer->listing->title.'".',
         ];
     }
 
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Counter-Offer Received — ' . $this->offer->listing->title)
+            ->subject('Counter-Offer Received — '.$this->offer->listing->title)
             ->greeting('The seller sent a counter-offer!')
-            ->line("Counter-offer of **\${$this->offer->amountInDollars()}** for \"{$this->offer->listing->title}\".")
+            ->line('Counter-offer of $'.$this->offer->amountInDollars().' for "'.$this->offer->listing->title.'".')
             ->action('View Offer', route('dashboard'));
     }
 }

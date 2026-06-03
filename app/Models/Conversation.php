@@ -12,11 +12,11 @@ class Conversation extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'ulid', 'listing_id', 'order_id', 'subject', 'last_message_at',
+        'ulid','listingid','orderid','subject','lastmessageat',
     ];
 
     protected $casts = [
-        'last_message_at' => 'datetime',
+        'lastmessageat' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -28,22 +28,21 @@ class Conversation extends Model
         });
     }
 
-    // Relations
     public function participants()
     {
-        return $this->belongsToMany(User::class, 'conversation_participants')
-            ->withPivot('last_read_at')
+        return $this->belongsToMany(User::class, 'conversationparticipants', 'conversationid', 'userid')
+            ->withPivot('lastreadat')
             ->withTimestamps();
     }
 
     public function messages()
     {
-        return $this->hasMany(Message::class)->orderBy('created_at');
+        return $this->hasMany(Message::class, 'conversationid')->orderBy('created_at');
     }
 
     public function latestMessage()
     {
-        return $this->hasOne(Message::class)->latestOfMany();
+        return $this->hasOne(Message::class, 'conversationid')->latestOfMany();
     }
 
     public function listing()
@@ -56,14 +55,13 @@ class Conversation extends Model
         return $this->belongsTo(Order::class);
     }
 
-    // Helpers
     public function unreadCountFor(User $user): int
     {
-        $participant = $this->participants->find($user->id);
+        $participant = $this->participants->firstWhere('id', $user->id);
         if (!$participant) return 0;
-        $lastRead = $participant->pivot->last_read_at;
+        $lastRead = $participant->pivot->lastreadat;
         return $this->messages()
-            ->where('sender_id', '!=', $user->id)
+            ->where('senderid', '!=', $user->id)
             ->when($lastRead, fn($q) => $q->where('created_at', '>', $lastRead))
             ->count();
     }

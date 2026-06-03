@@ -15,27 +15,30 @@ class OrderCancelled extends Notification
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database','mail'];
     }
 
     public function toArray($notifiable): array
     {
         return [
             'type' => 'order.cancelled',
-            'order_ulid' => $this->order->ulid,
+            'orderulid' => $this->order->ulid,
             'title' => $this->order->title,
-            'reason' => $this->order->cancellation_reason,
+            'reason' => $this->order->cancellationreason,
             'message' => "Order \"{$this->order->title}\" was cancelled.",
         ];
     }
 
     public function toMail($notifiable): MailMessage
     {
-        return (new MailMessage)
-            ->subject('Order Cancelled — ' . $this->order->title)
+        $mail = (new MailMessage)
+            ->subject('Order Cancelled — '.$this->order->title)
             ->greeting('Order Cancelled')
-            ->line("Order \"{$this->order->title}\" has been cancelled.")
-            ->when($this->order->cancellation_reason, fn($m) => $m->line("Reason: {$this->order->cancellation_reason}"))
+            ->line('Order "'.$this->order->title.'" has been cancelled.')
             ->action('View Order', route('orders.show', $this->order->ulid));
+        if ($this->order->cancellationreason) {
+            $mail->line('Reason: '.$this->order->cancellationreason);
+        }
+        return $mail;
     }
 }

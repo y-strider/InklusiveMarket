@@ -15,14 +15,14 @@ class OrderPaid extends Notification
 
     public function via($notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database','mail'];
     }
 
     public function toArray($notifiable): array
     {
         return [
             'type' => 'order.paid',
-            'order_ulid' => $this->order->ulid,
+            'orderulid' => $this->order->ulid,
             'title' => $this->order->title,
             'message' => "Payment confirmed for \"{$this->order->title}\"",
         ];
@@ -31,9 +31,9 @@ class OrderPaid extends Notification
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Payment Confirmed — ' . $this->order->title)
+            ->subject('Payment Confirmed — '.$this->order->title)
             ->greeting('Your payment was received!')
-            ->line("Your order for \"{$this->order->title}\" has been confirmed.")
+            ->line('Your order for "'.$this->order->title.'" has been confirmed.')
             ->action('Track Order', route('orders.show', $this->order->ulid));
     }
 }
