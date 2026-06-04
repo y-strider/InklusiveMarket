@@ -1,80 +1,75 @@
-import React from 'react'
+import React from "react";
 
 type Props = {
-  orderId: string
-  amount: number
-  currency: 'PHP'
-  description: string
-  referenceId: string
-  customerEmail?: string
-  onCreated?: (data: { checkoutUrl?: string }) => void
-}
+  orderId: string;
+  amount: number;
+  currency: string;
+  buyerId: string;
+  sellerId: string;
+  description: string;
+  customerEmail?: string;
+  successUrl: string;
+  cancelUrl: string;
+  billing?: { name?: string; email?: string; phone?: string };
+};
 
 export default function CheckoutButton(props: Props) {
-  const [loading, setLoading] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  async function handleClick() {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/payments/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': window.localStorage.getItem('userId') || ''
-        },
-        body: JSON.stringify({
-          orderId: props.orderId,
-          amount: props.amount,
-          currency: props.currency,
-          description: props.description,
-          referenceId: props.referenceId,
-          customerEmail: props.customerEmail,
-          successUrl: window.location.origin + '/payments/success',
-          cancelUrl: window.location.origin + '/payments/cancel'
-        })
+  async function handleCheckout() {
+    setLoading(true);
+    setError(null);
+    const r = await fetch("/api/payments/ensure", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        orderId: props.orderId,
+        amount: props.amount,
+        currency: props.currency,
+        buyerId: props.buyerId,
+        sellerId: props.sellerId,
+        description: props.description,
+        customerEmail: props.customerEmail,
+        successUrl: props.successUrl,
+        cancelUrl: props.cancelUrl,
+        billing: props.billing || {}
       })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Failed to create checkout session')
-      if (props.onCreated) props.onCreated({ checkoutUrl: json.checkoutUrl })
-      if (json.checkoutUrl) window.location.assign(json.checkoutUrl)
-    } catch (e: any) {
-      setError(e.message)
-    } finally {
-      setLoading(false)
+    });
+    const json = await r.json();
+    setLoading(false);
+    if (!r.ok) {
+      setError(json.error || "Unable to start checkout");
+      return;
     }
+    if (json.checkoutUrl) {
+      window.location.assign(json.checkoutUrl);
+      return;
+    }
+    if (json.message) {
+      setError(json.message);
+      return;
+    }
+    setError("Checkout is not available.");
   }
 
   return (
-    <div role="group" aria-label="Payment checkout" className="inline-flex flex-col items-start gap-2">
+    <div>
       <button
         type="button"
-        onClick={handleClick}
-        className="px-4 py-2 rounded bg-indigo-600 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 disabled:opacity-50"
-        aria-label="Proceed to secure checkout"
-        aria-busy={loading ? 'true' : 'false'}
-        aria-disabled={loading ? 'true' : 'false'}
+        onClick={handleCheckout}
         disabled={loading}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            handleClick()
-          }
-        }}
+        className="px-4 py-2 rounded bg-emerald-600 text-white disabled:opacity-50"
+        aria-busy={loading}
+        aria-live="polite"
       >
-        {loading ? 'Processing…' : 'Pay Now'}
+        {loading ? "Processing..." : "Pay now"}
       </button>
       {error && (
-        <div
-          role="alert"
-          aria-live="assertive"
-          className="text-sm text-red-600"
-          tabIndex={-1}
-        >
+        <div role="alert" className="mt-2 text-sm text-red-700 bg-red-50 border border-red-200 px-3 py-2 rounded">
           {error}
         </div>
       )}
     </div>
-  )
+  );
 }

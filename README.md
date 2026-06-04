@@ -133,3 +133,19 @@ frontend/src/pages/payments/MyPayments.tsx
 frontend/src/components/a11y/SRHelpers.css
 backend/src/http/routes/admin/payments.ts
 frontend/src/pages/admin/PaymentsDashboard.tsx
+server/src/payments/PayMongoClient.ts
+server/src/payments/PaymentTypes.ts
+server/src/payments/PaymentService.ts
+server/src/payments/PaymentRepoPrisma.ts
+server/prisma/migrations/20240604_add_payments_activity/migration.sql
+server/src/http/routes/paymentRoutes.ts
+web/src/components/payments/PaymentBadge.tsx
+New-Item -ItemType File -Force -Path web/src/pages/payments/index.tsx
+web/src/pages/payments/[id].tsx
+web/src/pages/api/payments/index.ts
+web/src/pages/api/payments/[id].ts
+web/src/pages/api/payments/ensure.ts
+web/src/components/payments/CheckoutButton.tsx
+server/src/http/index.ts
+server/src/http/server.ts
+web/src/components/a11y/VisuallyHidden.tsx
