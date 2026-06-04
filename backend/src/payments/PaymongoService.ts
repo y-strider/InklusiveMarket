@@ -1,226 +1,124 @@
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
+import { PaymentIntent, PaymentMethod, PaymentStatus, PaymentProvider, PaymentVisibility, PaymentSyncResult } from "./types";
+import { PaymentStore } from "./store";
+import { Config } from "../shared/config";
 
-export type PaymongoMode = "test" | "live";
-export type PaymongoSourceType = "gcash" | "grab_pay" | "paymaya" | "card";
-export type Currency = "PHP";
+export class PayMongoService implements PaymentProvider {
+  private http: AxiosInstance;
+  private enabled: boolean;
+  private apiKey: string | null;
 
-export type PaymongoConfig = {
-  secretKey?: string;
-  publicKey?: string;
-  mode: PaymongoMode;
-  baseUrl?: string;
-  enabled: boolean;
-};
-
-export type CreatePaymentIntentInput = {
-  amount: number;
-  currency: Currency;
-  description?: string;
-  metadata?: Record<string, string>;
-  paymentMethodAllowed: PaymongoSourceType[];
-  paymentMethodOptions?: Record<string, unknown>;
-  statementDescriptor?: string;
-  captureType?: "automatic" | "manual";
-};
-
-export type PaymentIntent = {
-  id: string;
-  clientKey?: string;
-  amount: number;
-  currency: Currency;
-  status:
-    | "awaiting_payment_method"
-    | "processing"
-    | "succeeded"
-    | "awaiting_next_action"
-    | "canceled";
-  description?: string | null;
-  lastPaymentError?: string | null;
-  nextAction?: unknown | null;
-  livemode: boolean;
-  metadata: Record<string, string>;
-};
-
-export type AttachPaymentMethodInput = {
-  paymentIntentId: string;
-  paymentMethodId: string;
-  returnUrl?: string;
-  clientKey?: string;
-};
-
-export type WebhookEvent = {
-  id: string;
-  type: string;
-  data: {
-    object: {
-      id: string;
-      type: string;
-      attributes: any;
-    };
-  };
-  livemode: boolean;
-  created_at: number;
-};
-
-export class PaymongoUnavailableError extends Error {
-  constructor() {
-    super(
-      "PayMongo payment processing is temporarily unavailable because payment credentials have not been configured by the system administrator."
-    );
-    this.name = "PaymongoUnavailableError";
-  }
-}
-
-export class PaymongoService {
-  private readonly cfg: PaymongoConfig;
-  private readonly http = axios.create();
-
-  constructor(cfg: PaymongoConfig) {
-    this.cfg = {
-      baseUrl: "[api.paymongo.com](https://api.paymongo.com/v1)",
-      ...cfg,
-    };
+  constructor(private store: PaymentStore, private config: Config) {
+    this.apiKey = config.PAYMONGO_SECRET_KEY || null;
+    this.enabled = !!this.apiKey;
+    this.http = axios.create({
+      baseURL: "[api.paymongo.com](https://api.paymongo.com/v1)",
+      auth: this.apiKey ? { username: this.apiKey, password: "" } : undefined,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 
   isEnabled(): boolean {
-    return !!this.cfg.enabled;
+    return this.enabled;
   }
 
-  private requireEnabled(): void {
-    if (!this.isEnabled() || !this.cfg.secretKey || !this.cfg.publicKey) {
-      throw new PaymongoUnavailableError();
+  async createIntent(amount: number, currency: string, metadata: Record<string, string>): Promise<PaymentIntent> {
+    if (!this.enabled) {
+      return this.store.createIntent({
+        provider: "paymongo",
+        providerIntentId: null,
+        amount,
+        currency,
+        status: "requires_payment_method",
+        metadata
+      });
     }
-  }
-
-  private authHeader(): { Authorization: string } {
-    const key = this.cfg.secretKey || "";
-    const token = Buffer.from(`${key}:`).toString("base64");
-    return { Authorization: `Basic ${token}` };
-  }
-
-  async createPaymentIntent(input: CreatePaymentIntentInput): Promise<PaymentIntent> {
-    this.requireEnabled();
-    const url = `${this.cfg.baseUrl}/payment_intents`;
-    const payload = {
+    const res = await this.http.post("/payment_intents", {
       data: {
         attributes: {
-          amount: Math.round(input.amount),
-          payment_method_allowed: input.paymentMethodAllowed,
-          payment_method_options: input.paymentMethodOptions || {},
-          currency: input.currency,
-          description: input.description || null,
-          statement_descriptor: input.statementDescriptor || null,
-          capture_type: input.captureType || "automatic",
-          metadata: input.metadata || {},
-        },
-      },
-    };
-    const res = await this.http.post(url, payload, {
-      headers: {
-        ...this.authHeader(),
-        "Content-Type": "application/json",
-      },
+          amount: Math.round(amount * 100),
+          payment_method_allowed: ["card", "gcash", "grab_pay", "paymaya"],
+          payment_method_options: { card: { request_three_d_secure: "automatic" } },
+          currency: currency.toLowerCase(),
+          capture_type: "automatic",
+          metadata
+        }
+      }
     });
-    const a = res.data.data.attributes;
-    return {
-      id: res.data.data.id,
-      clientKey: a.client_key,
-      amount: a.amount,
-      currency: a.currency,
-      status: a.status,
-      description: a.description,
-      lastPaymentError: a.last_payment_error || null,
-      nextAction: a.next_action || null,
-      livemode: a.livemode,
-      metadata: a.metadata || {},
-    };
-  }
-
-  async retrievePaymentIntent(id: string): Promise<PaymentIntent> {
-    this.requireEnabled();
-    const url = `${this.cfg.baseUrl}/payment_intents/${id}`;
-    const res = await this.http.get(url, {
-      headers: {
-        ...this.authHeader(),
-      },
+    const pi = res.data.data;
+    return this.store.createIntent({
+      provider: "paymongo",
+      providerIntentId: pi.id,
+      amount,
+      currency,
+      status: this.mapStatus(pi.attributes.status),
+      metadata
     });
-    const a = res.data.data.attributes;
-    return {
-      id: res.data.data.id,
-      clientKey: a.client_key,
-      amount: a.amount,
-      currency: a.currency,
-      status: a.status,
-      description: a.description,
-      lastPaymentError: a.last_payment_error || null,
-      nextAction: a.next_action || null,
-      livemode: a.livemode,
-      metadata: a.metadata || {},
-    };
   }
 
-  async cancelPaymentIntent(id: string): Promise<PaymentIntent> {
-    this.requireEnabled();
-    const url = `${this.cfg.baseUrl}/payment_intents/${id}/cancel`;
-    const res = await this.http.post(url, {}, { headers: this.authHeader() });
-    const a = res.data.data.attributes;
-    return {
-      id: res.data.data.id,
-      clientKey: a.client_key,
-      amount: a.amount,
-      currency: a.currency,
-      status: a.status,
-      description: a.description,
-      lastPaymentError: a.last_payment_error || null,
-      nextAction: a.next_action || null,
-      livemode: a.livemode,
-      metadata: a.metadata || {},
-    };
-  }
-
-  async attachPaymentMethod(input: AttachPaymentMethodInput): Promise<PaymentIntent> {
-    this.requireEnabled();
-    const url = `${this.cfg.baseUrl}/payment_intents/${input.paymentIntentId}/attach`;
-    const payload = {
+  async attachPaymentMethod(intentId: string, paymentMethod: PaymentMethod): Promise<PaymentIntent> {
+    const intent = await this.store.getById(intentId);
+    if (!intent) throw new Error("Payment intent not found");
+    if (!this.enabled || !intent.providerIntentId) {
+      return intent;
+    }
+    const res = await this.http.post(`/payment_intents/${intent.providerIntentId}/attach`, {
       data: {
         attributes: {
-          payment_method: input.paymentMethodId,
-          return_url: input.returnUrl || null,
-          client_key: input.clientKey || null,
-        },
-      },
-    };
-    const res = await this.http.post(url, payload, {
-      headers: {
-        ...this.authHeader(),
-        "Content-Type": "application/json",
-      },
+          payment_method: paymentMethod.id,
+          return_url: paymentMethod.returnUrl
+        }
+      }
     });
-    const a = res.data.data.attributes;
-    return {
-      id: res.data.data.id,
-      clientKey: a.client_key,
-      amount: a.amount,
-      currency: a.currency,
-      status: a.status,
-      description: a.description,
-      lastPaymentError: a.last_payment_error || null,
-      nextAction: a.next_action || null,
-      livemode: a.livemode,
-      metadata: a.metadata || {},
-    };
+    const pi = res.data.data;
+    return this.store.updateStatus(intentId, this.mapStatus(pi.attributes.status), {
+      latest_provider_payload: pi
+    });
   }
 
-  async verifySignature(rawBody: string, signatureHeader: string | undefined, webhookSecret: string | undefined): Promise<boolean> {
-    if (!signatureHeader || !webhookSecret) return false;
-    const [tPart, sigPart] = signatureHeader.split(",").map(s => s.trim());
-    if (!tPart || !sigPart) return false;
-    const t = tPart.replace("t=", "");
-    const sig = sigPart.replace("v1=", "");
-    const crypto = await import("crypto");
-    const hmac = crypto.createHmac("sha256", webhookSecret);
-    hmac.update(`${t}.${rawBody}`);
-    const digest = hmac.digest("hex");
-    return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(sig));
+  async retrieveIntent(intentId: string): Promise<PaymentIntent> {
+    const intent = await this.store.getById(intentId);
+    if (!intent) throw new Error("Payment intent not found");
+    if (!this.enabled || !intent.providerIntentId) {
+      return intent;
+    }
+    const res = await this.http.get(`/payment_intents/${intent.providerIntentId}`);
+    const pi = res.data.data;
+    return this.store.updateStatus(intentId, this.mapStatus(pi.attributes.status), {
+      latest_provider_payload: pi
+    });
+  }
+
+  async syncStatuses(limit: number = 100): Promise<PaymentSyncResult> {
+    const pending = await this.store.listByStatuses(["requires_payment_method", "requires_action", "processing", "succeeded_pending_sync"], limit);
+    let updated = 0;
+    for (const p of pending) {
+      if (!this.enabled || !p.providerIntentId) continue;
+      try {
+        const res = await this.http.get(`/payment_intents/${p.providerIntentId}`);
+        const pi = res.data.data;
+        const newStatus = this.mapStatus(pi.attributes.status);
+        if (newStatus !== p.status) {
+          await this.store.updateStatus(p.id, newStatus, { latest_provider_payload: pi });
+          updated++;
+        }
+      } catch {}
+    }
+    return { checked: pending.length, updated };
+  }
+
+  visibilityFor(role: "buyer" | "seller" | "admin"): PaymentVisibility {
+    if (role === "admin") return { canViewAmounts: true, canViewPii: true, canRefund: true };
+    if (role === "seller") return { canViewAmounts: true, canViewPii: false, canRefund: false };
+    return { canViewAmounts: true, canViewPii: false, canRefund: false };
+  }
+
+  private mapStatus(s: string): PaymentStatus {
+    if (s === "succeeded") return "succeeded";
+    if (s === "awaiting_next_action" || s === "processing") return "processing";
+    if (s === "requires_payment_method" || s === "requires_action") return "requires_payment_method";
+    if (s === "canceled") return "canceled";
+    if (s === "failed") return "failed";
+    return "processing";
   }
 }
