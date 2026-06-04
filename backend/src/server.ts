@@ -1,13 +1,21 @@
-import Fastify from "fastify";
-import cors from "@fastify/cors";
-import { registerPaymentRoutes } from "./payments/controller";
+import express from "express";
+import bodyParser from "body-parser";
+import { PaymentsController } from "./payments/PaymentsController";
 
-const app = Fastify({ logger: true });
+const app = express();
 
-async function main() {
-  await app.register(cors, { origin: true, credentials: true });
-  await registerPaymentRoutes(app);
-  const port = Number(process.env.PORT || 4000);
-  await app.listen({ port, host: "0.0.0.0" });
-}
-main();
+app.use(
+  "/webhooks/paymongo",
+  bodyParser.raw({ type: "*/*" }),
+  (req: any, _res, next) => {
+    req.rawBody = req.body.toString("utf8");
+    next();
+  }
+);
+
+app.use(bodyParser.json({ limit: "2mb" }));
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use("/api", PaymentsController());
+
+export default app;

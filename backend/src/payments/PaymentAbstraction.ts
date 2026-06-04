@@ -1,85 +1,44 @@
-import { PaymongoService, PaymongoUnavailableError, CreatePaymentIntentInput, PaymentIntent, AttachPaymentMethodInput } from "./PaymongoService";
+export type PaymentProvider = "paymongo";
 
-export type PaymentGateway = "paymongo";
+export type PaymentStatus = "pending" | "processing" | "paid" | "failed" | "canceled";
 
-export type PaymentConfig = {
-  gateway: PaymentGateway;
-  paymongo: {
-    enabled: boolean;
-    mode: "test" | "live";
-    secretKey?: string;
-    publicKey?: string;
-    webhookSecret?: string;
-  };
-};
+export interface PaymentCreateInput {
+  orderId: string;
+  amount: number;
+  currency: string;
+  description: string;
+  buyerId: string;
+  metadata?: Record<string, string | number | boolean>;
+  methods: string[];
+  returnUrl?: string;
+}
 
-export class PaymentProvider {
-  private readonly cfg: PaymentConfig;
-  private readonly paymongo: PaymongoService;
+export interface PaymentRecord {
+  id: string;
+  provider: PaymentProvider;
+  providerIntentId: string;
+  status: PaymentStatus;
+  orderId: string;
+  buyerId: string;
+  amount: number;
+  currency: string;
+  clientKey: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-  constructor(cfg: PaymentConfig) {
-    this.cfg = cfg;
-    this.paymongo = new PaymongoService({
-      enabled: cfg.paymongo.enabled,
-      mode: cfg.paymongo.mode,
-      secretKey: cfg.paymongo.secretKey,
-      publicKey: cfg.paymongo.publicKey,
-    });
-  }
+export interface PaymentRepository {
+  create(data: Omit<PaymentRecord, "id" | "createdAt" | "updatedAt">): Promise<PaymentRecord>;
+  update(id: string, patch: Partial<Omit<PaymentRecord, "id">>): Promise<PaymentRecord>;
+  findById(id: string): Promise<PaymentRecord | null>;
+  findByProviderIntent(provider: PaymentProvider, providerIntentId: string): Promise<PaymentRecord | null>;
+  listByOrder(orderId: string): Promise<PaymentRecord[]>;
+}
 
-  gateway(): PaymentGateway {
-    return this.cfg.gateway;
-  }
-
-  isLive(): boolean {
-    return this.cfg.paymongo.mode === "live";
-  }
-
-  isEnabled(): boolean {
-    return this.cfg.paymongo.enabled;
-  }
-
-  async createIntent(input: CreatePaymentIntentInput): Promise<PaymentIntent> {
-    try {
-      return await this.paymongo.createPaymentIntent(input);
-    } catch (e) {
-      if (e instanceof PaymongoUnavailableError) {
-        throw e;
-      }
-      throw e;
-    }
-  }
-
-  async retrieveIntent(id: string): Promise<PaymentIntent> {
-    try {
-      return await this.paymongo.retrievePaymentIntent(id);
-    } catch (e) {
-      if (e instanceof PaymongoUnavailableError) {
-        throw e;
-      }
-      throw e;
-    }
-  }
-
-  async cancelIntent(id: string): Promise<PaymentIntent> {
-    try {
-      return await this.paymongo.cancelPaymentIntent(id);
-    } catch (e) {
-      if (e instanceof PaymongoUnavailableError) {
-        throw e;
-      }
-      throw e;
-    }
-  }
-
-  async attachMethod(input: AttachPaymentMethodInput): Promise<PaymentIntent> {
-    try {
-      return await this.paymongo.attachPaymentMethod(input);
-    } catch (e) {
-      if (e instanceof PaymongoUnavailableError) {
-        throw e;
-      }
-      throw e;
-    }
-  }
+export interface PaymentService {
+  createPayment(input: PaymentCreateInput): Promise<PaymentRecord>;
+  syncPaymentByIntent(provider: PaymentProvider, providerIntentId: string): Promise<PaymentRecord | null>;
+  getBuyerView(buyerId: string, paymentId: string): Promise<PaymentRecord | null>;
+  getSellerView(sellerId: string, orderId: string): Promise<PaymentRecord[]>;
+  getAdminView(params: { status?: PaymentStatus; from?: Date; to?: Date; search?: string; skip?: number; take?: number }): Promise<{ items: PaymentRecord[]; total: number }>;
 }

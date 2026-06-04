@@ -163,6 +163,38 @@ backend/src/payments/analytics.ts
 backend/src/payments/reporting.ts
 frontend/src/routes/admin/payments/+page.svelte
 backend/src/admin/paymentsController.ts
+backend/src/payments/PayMongoService.ts
+backend/src/payments/PaymentAbstraction.ts
+backend/src/payments/PaymentRepositoryPrisma.ts
+backend/prisma/schema.prisma
+backend/src/payments/PaymentServiceImpl.ts
+backend/src/payments/PaymentsController.ts
+backend/src/server.ts
+frontend/src/lib/api/payments.ts
+frontend/src/components/payments/CheckoutNotice.tsx
+frontend/src/components/payments/BuyerPaymentPanel.tsx
+frontend/src/components/payments/SellerPaymentsTable.tsx
+frontend/src/pages/admin/PaymentsDashboard.tsx
+backend/src/database/migrations/20260604_create_orders_and_payments.ts
+backend/src/domain/orders/entities.ts
+backend/src/domain/orders/validation.ts
+backend/src/domain/payments/PaymentProvider.ts
+backend/src/domain/orders/repository.ts
+backend/src/domain/orders/service.ts
+backend/src/http/middleware/authz.ts
+backend/src/http/controllers/orders.controller.ts
+backend/src/app.ts
+frontend/src/components/AccessibleTable.tsx
+frontend/src/components/AccessibleForm.tsx
+frontend/src/pages/orders/OrdersList.tsx
+frontend/src/pages/orders/OrderCheckout.tsx
+
+
+
+
+
+
+
 
 
 
