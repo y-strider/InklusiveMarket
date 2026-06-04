@@ -112,4 +112,16 @@ app/Providers/RouteServiceProvider.php · lines 1-23
 
 backend\prisma\migrations\202606040001_add_payouts_and_payments\migration.sql
 
+server/src/payments/PaymentProvider.ts
+server/src/payments/PayMongoService.ts
+server/src/payments/index.ts
+server/src/payments/PaymentModel.ts
+server/src/payments/PaymentService.ts
+server/src/api/routes/payments.ts
+server/src/api/index.ts
+web/src/components/payments/CheckoutButton.tsx
+
+
+
+
 etc.
