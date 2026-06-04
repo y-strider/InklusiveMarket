@@ -1,0 +1,33 @@
+{
+  "name": "SiteSettings",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string"
+    },
+    "value": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "text",
+        "number",
+        "boolean",
+        "textarea"
+      ],
+      "default": "text"
+    },
+    "group": {
+      "type": "string",
+      "default": "general"
+    }
+  },
+  "required": [
+    "key",
+    "value"
+  ]
+}

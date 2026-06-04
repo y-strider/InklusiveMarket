@@ -1,0 +1,125 @@
+import { Toaster } from "@/components/ui/toaster"
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClientInstance } from '@/lib/query-client'
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import PageNotFound from './lib/PageNotFound';
+import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import ProtectedRoute from '@/components/ProtectedRoute.jsx';
+
+// Public pages
+import Home from '@/pages/Home.jsx';
+import Catalog from '@/pages/Catalog.jsx';
+import ProductDetail from '@/pages/ProductDetail.jsx';
+import Login from '@/pages/Login.jsx';
+import About from '@/pages/static/About.jsx';
+import Accessibility from '@/pages/static/Accessibility.jsx';
+import Privacy from '@/pages/static/Privacy.jsx';
+import Terms from '@/pages/static/Terms.jsx';
+import Contact from '@/pages/static/Contact.jsx';
+
+// Buyer pages
+import Cart from '@/pages/buyer/Cart.jsx';
+import Checkout from '@/pages/buyer/Checkout.jsx';
+import Orders from '@/pages/buyer/Orders.jsx';
+import OrderDetail from '@/pages/buyer/OrderDetail.jsx';
+import BuyerProfile from '@/pages/buyer/Profile.jsx';
+
+// Seller pages
+import SellerDashboard from '@/pages/seller/Dashboard.jsx';
+import SellerProducts from '@/pages/seller/Products.jsx';
+import SellerOrders from '@/pages/seller/SellerOrders.jsx';
+import SellerAnalytics from '@/pages/seller/Analytics.jsx';
+
+// Admin pages
+import AdminDashboard from '@/pages/admin/Dashboard.jsx';
+import ProductApprovals from '@/pages/admin/ProductApprovals.jsx';
+import AdminUsers from '@/pages/admin/Users.jsx';
+import AdminOrders from '@/pages/admin/AdminOrders.jsx';
+import AdminTransactions from '@/pages/admin/AdminTransactions.jsx';
+import AdminCategories from '@/pages/admin/Categories.jsx';
+import Reports from '@/pages/admin/Reports.jsx';
+import ActivityLogs from '@/pages/admin/ActivityLogs.jsx';
+import AdminSettings from '@/pages/admin/AdminSettings.jsx';
+
+const AuthenticatedApp = () => {
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+
+  if (isLoadingPublicSettings || isLoadingAuth) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading Inclusive Market…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (authError) {
+    if (authError.type === 'user_not_registered') {
+      return <UserNotRegisteredError />;
+    } else if (authError.type === 'auth_required') {
+      navigateToLogin();
+      return null;
+    }
+  }
+
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<Home />} />
+      <Route path="/catalog" element={<Catalog />} />
+      <Route path="/product/:id" element={<ProductDetail />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/accessibility" element={<Accessibility />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/contact" element={<Contact />} />
+
+      {/* Protected routes — any authenticated user */}
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route path="/buyer/cart" element={<Cart />} />
+        <Route path="/buyer/checkout" element={<Checkout />} />
+        <Route path="/buyer/orders" element={<Orders />} />
+        <Route path="/buyer/orders/:id" element={<OrderDetail />} />
+        <Route path="/buyer/profile" element={<BuyerProfile />} />
+
+        {/* Seller routes */}
+        <Route path="/seller/dashboard" element={<SellerDashboard />} />
+        <Route path="/seller/products" element={<SellerProducts />} />
+        <Route path="/seller/orders" element={<SellerOrders />} />
+        <Route path="/seller/analytics" element={<SellerAnalytics />} />
+
+        {/* Admin routes */}
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/products" element={<ProductApprovals />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/orders" element={<AdminOrders />} />
+        <Route path="/admin/transactions" element={<AdminTransactions />} />
+        <Route path="/admin/categories" element={<AdminCategories />} />
+        <Route path="/admin/reports" element={<Reports />} />
+        <Route path="/admin/activity-logs" element={<ActivityLogs />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
+      </Route>
+
+      <Route path="*" element={<PageNotFound />} />
+    </Routes>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <QueryClientProvider client={queryClientInstance}>
+        <Router>
+          <AuthenticatedApp />
+        </Router>
+        <Toaster />
+      </QueryClientProvider>
+    </AuthProvider>
+  );
+}
+
+export default App;

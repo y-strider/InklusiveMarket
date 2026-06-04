@@ -1,0 +1,50 @@
+{
+  "name": "Cart",
+  "type": "object",
+  "properties": {
+    "buyer_id": {
+      "type": "string",
+      "description": "Buyer user ID"
+    },
+    "items": {
+      "type": "array",
+      "description": "Cart line items",
+      "items": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "product_image": {
+            "type": "string"
+          },
+          "seller_id": {
+            "type": "string"
+          },
+          "seller_name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "max_quantity": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "buyer_id"
+  ]
+}

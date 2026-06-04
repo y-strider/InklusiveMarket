@@ -1,0 +1,42 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "actor_id": {
+      "type": "string",
+      "description": "User who performed the action"
+    },
+    "actor_name": {
+      "type": "string"
+    },
+    "actor_role": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "description": "e.g. product.approved, order.status_changed"
+    },
+    "subject_type": {
+      "type": "string",
+      "description": "Entity type affected"
+    },
+    "subject_id": {
+      "type": "string"
+    },
+    "subject_label": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "ip_address": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action"
+  ]
+}

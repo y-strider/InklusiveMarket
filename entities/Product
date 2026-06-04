@@ -1,0 +1,121 @@
+{
+  "name": "Product",
+  "type": "object",
+  "properties": {
+    "seller_id": {
+      "type": "string",
+      "description": "Seller user ID"
+    },
+    "seller_name": {
+      "type": "string",
+      "description": "Seller display name (denormalized)"
+    },
+    "category_id": {
+      "type": "string",
+      "description": "Category ID"
+    },
+    "category_name": {
+      "type": "string",
+      "description": "Category name (denormalized)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Product name"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL slug"
+    },
+    "description": {
+      "type": "string",
+      "description": "Product description"
+    },
+    "short_description": {
+      "type": "string",
+      "description": "Short product summary"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price in PHP"
+    },
+    "compare_at_price": {
+      "type": "number",
+      "description": "Original price for discount display"
+    },
+    "stock_quantity": {
+      "type": "number",
+      "default": 0
+    },
+    "reserved_quantity": {
+      "type": "number",
+      "default": 0
+    },
+    "low_stock_threshold": {
+      "type": "number",
+      "default": 5
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "rejection_reason": {
+      "type": "string"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "primary_image_url": {
+      "type": "string"
+    },
+    "gallery_images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of image URLs"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "views_count": {
+      "type": "number",
+      "default": 0
+    },
+    "orders_count": {
+      "type": "number",
+      "default": 0
+    },
+    "average_rating": {
+      "type": "number",
+      "default": 0
+    },
+    "reviews_count": {
+      "type": "number",
+      "default": 0
+    },
+    "weight_grams": {
+      "type": "number"
+    },
+    "sku": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "price",
+    "seller_id"
+  ]
+}
